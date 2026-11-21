@@ -21,12 +21,12 @@ Use `ro.product.device` and `fastboot getvar product`, not a shop listing or the
 
 ## SoC vendor: Qualcomm versus MediaTek
 
-The single biggest predictor of whether a port exists is the chip, and within chips the vendor:
+The best predictor of whether a port exists is the chip, and within chips the vendor:
 
-- **Qualcomm** recent SoCs, especially the `sm7125`/`sm8250`-era ones, have real mainline work behind them. The `miatoll` family (Redmi Note 9S / Note 9 Pro / Note 9 Pro Max / Poco M2 Pro) has Ubuntu Touch, postmarketOS, Droidian and Sailfish ports, so it is a feasible target — as on the Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)).
+- **Qualcomm** recent SoCs, especially the `sm7125`/`sm8250`-era ones, have real mainline work behind them. The `miatoll` family (Redmi Note 9S / Note 9 Pro / Note 9 Pro Max / Poco M2 Pro) has Ubuntu Touch, postmarketOS, Droidian and Sailfish ports, so it is a feasible target: as on the Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)).
 - **MediaTek** recent chips, and new flagships in particular, usually have **no** mainline support. The Poco X8 Pro Max ([`phones/xiaomi-dash`](../../../../phones/xiaomi-dash/), codename `dash`, Dimensity 9500s) has no port, and no public BROM rescue if a flash goes wrong.
 
-A port can exist for one variant of a family and not another. The Redmi Note 9 Pro Max (`excalibur`) has no device tree of its own even though the family is supported; it runs on the Note 9 Pro's tree with a patch. So "the family is supported" is a starting point, not a guarantee — see [`postmarketos-unsupported-variant.md`](postmarketos-unsupported-variant.md).
+A port can exist for one variant of a family and not another. The Redmi Note 9 Pro Max (`excalibur`) has no device tree of its own even though the family is supported; it runs on the Note 9 Pro's tree with a patch. So "the family is supported" is a starting point, not a guarantee: see [`postmarketos-unsupported-variant.md`](postmarketos-unsupported-variant.md).
 
 ## A/B versus A-only slots
 
@@ -40,10 +40,10 @@ Check with `adb shell getprop ro.boot.slot_suffix` (`_a` or `_b` on A/B phones, 
 Check all of these, and check them by **codename**:
 
 - **This repository's [`phones/`](../../../../phones/)**: phones already done, with install steps and the fixes each needs.
-- **postmarketOS / Nura wiki and pmaports** — the wiki is at `wiki.nura.eco` (postmarketOS was renamed Nura in 2026; the package names are still `postmarketos-*` and the tool is still `pmbootstrap`). The device list and each device's page tell you what works. The actual port lives in `pmaports`, under `device/<category>/device-<vendor>-<codename>/`. Look for a `deviceinfo` file and read what it enables.
-- **Ubuntu Touch** — `devices.ubuntu-touch.io` lists ports and their install channels. The `miatoll` family has an official, maintained port on 24.04.
-- **Droidian** — a Debian-based option; check its device list for your codename.
-- **Sailfish OS** — check the Sailfish community port lists.
+- **postmarketOS / Nura wiki and pmaports**: the wiki is at `wiki.nura.eco` (postmarketOS was renamed Nura in 2026; the package names are still `postmarketos-*` and the tool is still `pmbootstrap`). The device list and each device's page tell you what works. The actual port lives in `pmaports`, under `device/<category>/device-<vendor>-<codename>/`. Look for a `deviceinfo` file and read what it enables.
+- **Ubuntu Touch**: `devices.ubuntu-touch.io` lists ports and their install channels. The `miatoll` family has an official, maintained port on 24.04.
+- **Droidian**: a Debian-based option; check its device list for your codename.
+- **Sailfish OS**: check the Sailfish community port lists.
 
 A device on none of these lists has no one maintaining a Linux port for it today, regardless of what a single GitHub repo claims.
 

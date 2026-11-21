@@ -1,6 +1,6 @@
 ---
 name: android2linux
-description: Pair with someone to move a phone from Android to Linux — postmarketOS, Ubuntu Touch, Droidian and similar — from first question to daily use. Use whenever the user wants to install Linux on a phone, check whether their phone can run Linux, unlock a bootloader, flash or downgrade firmware, dual-boot, fix hardware (modem, audio, charging, camera, display) on a Linux phone, make a desktop web app usable on a phone screen, or build a kiosk or custom UI on one. Also use for questions like "can my phone run Linux?", "how do I unlock my Xiaomi from Linux?", "my SIM doesn't work on postmarketOS" or "make WhatsApp usable on my Linux phone".
+description: Pair with someone to move a phone from Android to Linux (postmarketOS, Ubuntu Touch, Droidian and similar), from first question to daily use. Use whenever the user wants to install Linux on a phone, check whether their phone can run Linux, unlock a bootloader, flash or downgrade firmware, dual-boot, fix hardware (modem, audio, charging, camera, display) on a Linux phone, make a desktop web app usable on a phone screen, or build a kiosk or custom UI on one. Also use for questions like "can my phone run Linux?", "how do I unlock my Xiaomi from Linux?", "my SIM doesn't work on postmarketOS" or "make WhatsApp usable on my Linux phone".
 ---
 
 # android2linux

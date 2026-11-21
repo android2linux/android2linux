@@ -1,10 +1,10 @@
 # Working on the phone from your PC
 
-This guide is how you drive the phone from a Linux PC once Linux is on it: reaching it over SSH on USB networking or Wi-Fi, keeping an `ssh` config that survives reinstalls, using `adb` when you are still on Android or Ubuntu Touch, and the habits that make remote work reliable — how `sudo` is handled, why long commands go in scripts, the `pkill`/`pgrep` self-match trap, launching GUI apps without hanging the session, and forwarding a browser's DevTools port. It is the plumbing every other guide assumes; [`chromium-kiosk.md`](chromium-kiosk.md) is the common next step.
+Reaching the phone from a Linux PC over SSH or adb, and running commands and apps on it reliably.
 
 ## SSH over USB networking
 
-postmarketOS brings up USB networking at fixed addresses: the phone is **`172.16.42.1`**, the PC gets **`172.16.42.2`** on an `enx…` interface. It comes up **seconds after boot, before the full system**, so `ssh` may be refused for a minute after a restart — that is timing, not a fault.
+postmarketOS brings up USB networking at fixed addresses: the phone is **`172.16.42.1`**, the PC gets **`172.16.42.2`** on an `enx…` interface. It comes up **seconds after boot, before the full system**, so `ssh` may be refused for a minute after a restart: that is timing, not a fault.
 
 ```sh
 ssh pmos
@@ -48,9 +48,9 @@ On Android, enable Developer options and USB debugging. On Ubuntu Touch, set a p
 
 - **Preferred:** the user runs the `sudo` command themselves (or runs a script that does).
 - **If the user explicitly shares it for the session:** they may pipe it, e.g. the user tells the assistant to run `echo <pin> | sudo -S -p "" <cmd>` over SSH so work doesn't stall.
-- **Never store the password in a file, script, config or log.** It is deliberately absent from every file in this project. In a new session, **ask the user** for it again.
+- **Never store the password in a file, script, config or log.** In each new session, **ask the user** for it again.
 
-Commands the **user** has to type should be short, or wrapped in a script they run, because the user's terminal frontend **truncates long lines** — they cannot copy a long command reliably. Put anything long in a script under `bin/` and have them run the short script name.
+Commands the **user** has to type should be short, or wrapped in a script they run, because terminals and chat windows often **truncate long lines**, and they cannot copy a long command reliably. Put anything long in a script under `bin/` and have them run the short script name.
 
 ## Keep long commands in scripts
 

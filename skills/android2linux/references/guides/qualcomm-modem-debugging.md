@@ -1,6 +1,6 @@
 # Debugging a Qualcomm modem on Linux
 
-This guide is the method for taking a modem from "present but refusing to come online" to registered, with data, SMS and calls, on a mainline Qualcomm phone. Work through the narrowing steps in order: confirm the basics, learn the operating-mode states, rule out ModemManager, compare against an OS where the modem works, read the helper-service logs, apply the fix, and know which log noise to ignore. One cause, covered here in full, is a userspace helper (`tqftpserv`), not the modem firmware. Use it with [`working-from-your-pc.md`](working-from-your-pc.md) for running commands on the phone; for device context see [`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/).
+How to get a Qualcomm modem online when Linux detects it but it won't register: narrow down the cause step by step. One cause, covered in full here, is an outdated `tqftpserv`. Commands run on the phone as root ([Working from your PC](working-from-your-pc.md)).
 
 ## 1. Confirm the basics
 

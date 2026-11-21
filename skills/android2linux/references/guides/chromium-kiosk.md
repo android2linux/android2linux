@@ -1,13 +1,13 @@
 # Chromium in a kiosk, and in Phosh
 
-This guide covers running Chromium as the whole interface of the phone — `cage`, a single-window Wayland compositor, launching Chromium full-screen on a local web page — and the smaller job of running Chromium as a normal app inside Phosh. It covers the greetd switch between the two, why the display scale must be set in the compositor as an integer, why the page must open as an app window, how to verify what the browser actually renders through DevTools over an SSH tunnel, how to take real screenshots with `grim`, the missing on-screen keyboard in `cage`, and the safe-area insets the notch and rounded corners impose. It builds on [`working-from-your-pc.md`](working-from-your-pc.md).
+Two ways to run Chromium on a postmarketOS phone: as the whole interface, full-screen in the `cage` compositor, or as an app inside Phosh that fits the screen.
 
 Reference setup: Chromium **156** and `cage` **0.3** on postmarketOS v26.06, with Phosh 0.55 / phoc 0.55.1 for the normal-app case.
 
 ## Two modes
 
-- **Chromium inside Phosh** — a normal app window on the phone's desktop. Easiest; needs two fixes to fit the screen.
-- **The kiosk** — no desktop, `cage` runs Chromium full-screen on one page. This is the base for an OS whose UI is a web app.
+- **Chromium inside Phosh**: a normal app window on the phone's desktop. Easiest; needs two fixes to fit the screen.
+- **The kiosk**: no desktop, `cage` runs Chromium full-screen on one page. This is the base for an OS whose UI is a web app.
 
 ## The kiosk: greetd switch
 
@@ -47,7 +47,7 @@ wlr-randr --output DSI-1 --scale 3
 ```
 
 - `--force-device-scale-factor` on Wayland renders at **2.75×** the logical width instead of fitting, so it does not give you the screen.
-- `cage` scales by **integers** for Chromium, so a fractional value like 2.75 leaves a mismatch. **3** gives 360 × 800 CSS px on a 1080 × 2400 panel — Android's usual size, and sharp.
+- `cage` scales by **integers** for Chromium, so a fractional value like 2.75 leaves a mismatch. **3** gives 360 × 800 CSS px on a 1080 × 2400 panel: Android's usual size, and sharp.
 
 The window size is then the panel divided by the scale (`1080/3 × 2400/3` = `360,800`).
 
@@ -74,7 +74,7 @@ exec cage -s -- sh -c "
 
 DevTools shows the truth about viewport, pixel ratio and GPU. Forward port 9222 to the PC over an SSH tunnel (see [`working-from-your-pc.md`](working-from-your-pc.md#devtools-over-a-tunnel)), then open `http://127.0.0.1:9223/json` (or `chrome://inspect` in Chrome on the PC).
 
-Expect viewport **360 × 800** and `devicePixelRatio` **3** at scale 3, a WebGL renderer of `ANGLE (…, FD618, OpenGL ES 3.2)` — Mesa freedreno on the Adreno 618, GPU-accelerated — and **58–60 fps** with WebGL and CSS animations running. There is **no hardware video decode** (`vaInitialize failed`, expected); the GPU does the drawing.
+Expect viewport **360 × 800** and `devicePixelRatio` **3** at scale 3, a WebGL renderer of `ANGLE (…, FD618, OpenGL ES 3.2)` (Mesa freedreno on the Adreno 618, GPU-accelerated) and **58–60 fps** with WebGL and CSS animations running. There is **no hardware video decode** (`vaInitialize failed`, expected); the GPU does the drawing.
 
 `cage` sometimes logs `Atomic commit failed: Resource busy`, from the display driver being busy on a page flip. Expect occasional jank, not a fault.
 
@@ -97,7 +97,7 @@ scp pmos:/tmp/screen.png .
 
 In the kiosk there is **no status bar**, so the page runs under the rounded corners and the camera hole. Measure the panel's top camera/notch region, corner radius and camera-hole width in physical pixels, divide by the scale, and keep matching insets in the UI.
 
-Chromium on this setup **does not fill `env(safe-area-inset-*)`**, so you cannot rely on the CSS environment variables — keep your own top inset and corner padding in the UI.
+Chromium on this setup **does not fill `env(safe-area-inset-*)`**, so you cannot rely on the CSS environment variables: keep your own top inset and corner padding in the UI.
 
 ## Chromium inside Phosh
 

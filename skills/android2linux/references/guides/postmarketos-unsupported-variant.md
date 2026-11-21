@@ -1,6 +1,6 @@
 # postmarketOS on an unsupported variant
 
-This is the technique guide for the hardest case: a phone whose **family** is supported but whose exact variant is not. The worked example is the Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)), codename `excalibur`, which has no device tree of its own and boots on the Note 9 Pro's (`joyeuse`) tree by patching the bootloader's device-tree match and building a device package locally. It covers reading a device's `deviceinfo`, building with `pmbootstrap` from git (the PyPI release is stale), the config and local-pmaports changes, the boot chain, how U-Boot chooses a device tree and the same-length placeholder patch that makes the match work, how to verify the patch by parsing and simulating, the flash order, and the first boot over USB networking. Read [`assess-your-phone.md`](assess-your-phone.md) first and [`safe-flashing.md`](safe-flashing.md) before the flash.
+How to install postmarketOS on a phone whose family is supported but whose exact variant isn't: build the image with pmbootstrap, make the bootloader pick the closest device tree, and flash. The Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)) is the example throughout. Read [Assess your phone](assess-your-phone.md) first, and [Safe flashing](safe-flashing.md) before you flash.
 
 This is not a beginner path. Expect to reason about the boot chain rather than follow steps blindly.
 
@@ -23,7 +23,7 @@ The `pmbootstrap` on PyPI is from 2023 and too old for current pmaports. Clone i
 
 A few settings that `pmbootstrap init` would normally write need to be in place, plus a patch for the small boot partition.
 
-**The small-boot-partition patch.** On this family the kernel boot image goes into `cache`, which is 384 MiB — smaller than pmbootstrap insists on. Patch `pmb/install/_install.py`, function `sanity_check_boot_size()`, so that with `PMB_ALLOW_SMALL_BOOT=1` a `boot_size` below 512 is allowed ([`pmbootstrap-small-boot.patch`](../../scripts/pmbootstrap-small-boot.patch)). Then set `boot_size = 256` (`pmbootstrap config boot_size 256`).
+**The small-boot-partition patch.** On this family the kernel boot image goes into `cache`, which is 384 MiB: smaller than pmbootstrap insists on. Patch `pmb/install/_install.py`, function `sanity_check_boot_size()`, so that with `PMB_ALLOW_SMALL_BOOT=1` a `boot_size` below 512 is allowed ([`pmbootstrap-small-boot.patch`](../../scripts/pmbootstrap-small-boot.patch)). Then set `boot_size = 256` (`pmbootstrap config boot_size 256`).
 
 **The config file** `~/.config/pmbootstrap_v3.cfg` holds:
 
@@ -42,7 +42,7 @@ Write it with pmbootstrap's own `Config` and `pmb.config.file.save`, not with `p
 **The work folder** `~/.local/var/pmbootstrap/`:
 
 - `version` must contain `8` (write it by hand, as `init` would).
-- `cache_git/pmaports` is a checkout of the **v26.06** branch. Its `origin` **must** be `https://gitlab.postmarketos.org/postmarketOS/pmaports.git` — that is the URL pmbootstrap uses to recognise pmaports. It redirects to Nura; keep the canonical URL in `origin`.
+- `cache_git/pmaports` is a checkout of the **v26.06** branch. Its `origin` **must** be `https://gitlab.postmarketos.org/postmarketOS/pmaports.git`: that is the URL pmbootstrap uses to recognise pmaports. It redirects to Nura; keep the canonical URL in `origin`.
 
 ## The local pmaports change
 
@@ -69,7 +69,7 @@ ABL (the phone's own bootloader, with fastboot)
 - `boot` holds **U-Boot**.
 - `cache` holds the **kernel** (the FAT32 image with kernel, initramfs, `dtbs/`, systemd-boot and `loader/entries/pmos.conf`).
 - `userdata` holds the **root filesystem**, ext4, which grows to fill the partition on first boot.
-- `dtbo` is **erased** — this family does not use it under Linux.
+- `dtbo` is **erased**: this family does not use it under Linux.
 
 **Never swap `boot` and `cache`.** To update only the kernel side, flash `cache`; to replace the system, flash `userdata`, which wipes the user's data.
 
@@ -77,7 +77,7 @@ ABL (the phone's own bootloader, with fastboot)
 
 The only U-Boot release for this family (`u-boot-sm7125.img` from `github.com/sm7125-mainline/u-boot`, release 2025-06-02, SHA-256 `6878802d…`) carries the four real device trees in a **FIT** with CRC32 checks, plus a **placeholder** device tree appended to its kernel section that ABL fills in and hands over.
 
-U-Boot chooses a tree whose `/chosen/match/<name>` strings **all** appear in the command line ABL gives it — see `arch/arm/mach-snapdragon/of_match.c`. For this family those match strings are the **panel string** and **`androidboot.hwname=curtana|joyeuse`**.
+U-Boot chooses a tree whose `/chosen/match/<name>` strings **all** appear in the command line ABL gives it: see `arch/arm/mach-snapdragon/of_match.c`. For this family those match strings are the **panel string** and **`androidboot.hwname=curtana|joyeuse`**.
 
 This phone's ABL says **`androidboot.hwname=excalibur`**, so nothing matches. U-Boot then carries on with the empty placeholder, which describes no hardware, so it can't boot Linux.
 
@@ -85,7 +85,7 @@ This phone's ABL says **`androidboot.hwname=excalibur`**, so nothing matches. U-
 
 Make the phone match the `joyeuse` tree:
 
-- In the **appended placeholder** device tree (not the FIT), change the two `androidboot.hwname=joyeuse` strings at offsets `0x92077` and `0x920fb` to **`androidboot.hwname=excalib`** — a substring of `excalibur`, same length. The patch touches **14 bytes** in the placeholder (spanning offsets `0x91e67`–`0x9215f`).
+- In the **appended placeholder** device tree (not the FIT), change the two `androidboot.hwname=joyeuse` strings at offsets `0x92077` and `0x920fb` to **`androidboot.hwname=excalib`**: a substring of `excalibur`, same length. The patch touches **14 bytes** in the placeholder (spanning offsets `0x91e67`–`0x9215f`).
 - Leave the FIT copy alone. It is CRC-protected, and you do not need to touch it: the placeholder is what ABL fills and what U-Boot matches against.
 
 Same length is required because you are overwriting bytes in place, not rebuilding the structure. With the patch, this phone matches `sm7125-xiaomi-joyeuse-huaxing`, and the Note 9S still matches `curtana` because its `hwname=curtana` string is untouched.
@@ -118,8 +118,8 @@ PMB_ALLOW_SMALL_BOOT=1 pmbootstrap install
 
 This asks for the PC's sudo password and the phone user's password, so the **user runs it**. Outputs in `~/.local/var/pmbootstrap/chroot_native/home/pmos/rootfs/`:
 
-- `xiaomi-miatoll-boot.img` — 256 MiB FAT32 with the kernel, initramfs, `dtbs/`, systemd-boot and `loader/entries/pmos.conf`.
-- `xiaomi-miatoll-root.img` — the ext4 root filesystem.
+- `xiaomi-miatoll-boot.img`: 256 MiB FAT32 with the kernel, initramfs, `dtbs/`, systemd-boot and `loader/entries/pmos.conf`.
+- `xiaomi-miatoll-root.img`: the ext4 root filesystem.
 
 Both are world-readable, so plain `fastboot` flashes them without root. Inspect the boot image with `mdir`/`mtype -i <boot.img>` (set `MTOOLS_SKIP_CHECK=1`).
 

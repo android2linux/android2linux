@@ -1,6 +1,6 @@
 # Ubuntu Touch
 
-This guide covers installing and living with Ubuntu Touch on a supported phone, using the `miatoll` family as the example. It explains the UBports installer flow (including the Partitioning checkbox that is easy to miss), the Android-version prerequisite, enabling Developer Mode and SSH, what read-only system means in practice and which files are writable, why background apps are frozen, the difference between the 24.04-1.x and 2.x series for screen cutouts, screenshots, hosts-file ad blocking, the browser and its Chromium engine, and desktop apps. It is the step before [`postmarketos-unsupported-variant.md`](postmarketos-unsupported-variant.md) in the worked example, and the "ways back" target in [`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/).
+Installing Ubuntu Touch with the UBports Installer, reaching the phone from your PC, and living with its read-only system.
 
 ## Prerequisite: the right Android base
 
@@ -48,7 +48,7 @@ Ubuntu Touch mounts the system read-only. A small number of files are writable b
 sudo cp /tmp/hosts.new /etc/hosts
 ```
 
-Apps run under **AppArmor**, and background apps are **SIGSTOPped** when they are not in front — a frozen app does not keep running in the background the way Android or desktop Linux would. Updates go through `system-image-cli`.
+Apps run under **AppArmor**, and background apps are **SIGSTOPped** when they are not in front: a frozen app does not keep running in the background the way Android or desktop Linux would. Updates go through `system-image-cli`.
 
 ## 24.04-1.x versus 24.04-2.x: the cutouts
 

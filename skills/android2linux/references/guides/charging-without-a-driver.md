@@ -1,10 +1,10 @@
 # Charging a phone with no charger driver
 
-This guide is about a phone whose charger chip has **no mainline driver**, and what you can still rely on. It explains why the PM6150 "SMB5" charger does not work as expected under a mainline kernel, what the hardware's power-on defaults actually give you (a PC port is roughly break-even, a wall charger works with the screen off), how to measure charging honestly with the battery gauge, how suspend behaves, and what a real fix would take. It applies to the Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)) and to any phone whose charger runs on the same defaults.
+What you can rely on when a phone's charger chip has no mainline Linux driver, how to charge it, and how to measure what is happening. The example is the PM6150 charger ("SMB5") in Snapdragon 720G phones.
 
 ## The missing driver
 
-The phone's charger is part of the **PM6150** PMIC and belongs to Qualcomm's **"SMB5"** charger generation. Mainline, and every `sm7125-mainline` branch up to `sm7125-7.4.0-next-20261113`, only carries **`qcom_smbx`** (formerly `qcom_pmi8998_charger`), which targets PMI8998/PM660 — the older **"SMB2"** generation. There is no SMB5 driver anywhere upstream.
+The phone's charger is part of the **PM6150** PMIC and belongs to Qualcomm's **"SMB5"** charger generation. Mainline, and every `sm7125-mainline` branch up to `sm7125-7.4.0-next-20261113`, only carries **`qcom_smbx`** (formerly `qcom_pmi8998_charger`), which targets PMI8998/PM660: the older **"SMB2"** generation. There is no SMB5 driver anywhere upstream.
 
 Ubuntu Touch charges properly because it runs Android's kernel, which has Qualcomm's **`qpnp-smb5`** driver. Under a mainline kernel, nothing drives the charger.
 
@@ -13,7 +13,7 @@ Ubuntu Touch charges properly because it runs Android's kernel, which has Qualco
 With no driver, the chip runs on its **power-on defaults**:
 
 - **No fast charging.** It trickles at whatever the default mode allows.
-- **No status reporting.** The battery `status` reads "Unknown" all the time; the USB-C type supply reports `online=0`; `power_role` can show `[source]` while `usb_vbus` is off — nothing is negotiated.
+- **No status reporting.** The battery `status` reads "Unknown" all the time; the USB-C type supply reports `online=0`; `power_role` can show `[source]` while `usb_vbus` is off: nothing is negotiated.
 
 What that means in practice:
 
@@ -39,7 +39,7 @@ Read the values from the standard power-supply sysfs nodes for the battery. Beca
 
 ## Suspend
 
-Suspend is **`s2idle`** only. It works: the phone sleeps and resumes, with a kernel warning logged on resume (benign). Suspend matters for charging because a suspended phone with the screen off is the best case for the trickle-charge defaults — it is the state in which a wall charger actually gains.
+Suspend is **`s2idle`** only. It works: the phone sleeps and resumes, with a kernel warning logged on resume (benign). Suspend matters for charging because a suspended phone with the screen off is the best case for the trickle-charge defaults: it is the state in which a wall charger actually gains.
 
 ## What a real fix would take
 

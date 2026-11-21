@@ -1,6 +1,6 @@
 # Unlocking a Xiaomi bootloader from Linux
 
-This guide walks through Xiaomi's bootloader unlock from a Linux PC, with no Windows step. It covers binding the Mi Unlock status on the phone (and the "couldn't verify" fix), the difference between MIUI and HyperOS flows, using the community MiUnlockTool with browser login, and what to actually expect — including that the unlock may have no waiting period and wipes the phone the moment it succeeds. Read [`safe-flashing.md`](safe-flashing.md) first so you know what you are enabling, and back up before the last step.
+Unlocking a Xiaomi bootloader from a Linux PC, with no Windows step. Unlocking wipes the phone; read [Safe flashing](safe-flashing.md) first.
 
 ## What you need
 
@@ -41,7 +41,7 @@ Also be aware: Xiaomi reportedly allows **one unlock per account per year**. If 
 
 ## 4. Unlock from Linux with MiUnlockTool
 
-The community **MiUnlockTool** (`MiForge/MiUnlockTool`, published on PyPI as `miunlock`) talks only to Xiaomi's own servers. Its **browser-login** mode means you never type your Mi password into the tool itself — you sign in through a browser page it opens.
+The community **MiUnlockTool** (`MiForge/MiUnlockTool`, published on PyPI as `miunlock`) talks only to Xiaomi's own servers. Its **browser-login** mode means you never type your Mi password into the tool itself: you sign in through a browser page it opens.
 
 ```sh
 uv tool install miunlock==1.7.5
