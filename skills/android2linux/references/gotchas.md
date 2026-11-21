@@ -25,7 +25,7 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 ## postmarketOS build
 
 - **PyPI `pmbootstrap` is stale (2023).** Clone 3.12.1 from git. [`guides/postmarketos-unsupported-variant.md`](guides/postmarketos-unsupported-variant.md)
-- **pmaports is not recognised unless `origin` is `https://gitlab.postmarketos.org/postMarketOS/pmaports.git`.** Keep that canonical URL.
+- **pmaports is not recognised unless `origin` is `https://gitlab.postmarketos.org/postmarketOS/pmaports.git`.** Keep that canonical URL.
 - **`~/.local/var/pmbootstrap/version` must contain `8`.** Write it by hand if `init` didn't.
 - **`boot_size` below 512 is refused.** Patch `sanity_check_boot_size()`, use `PMB_ALLOW_SMALL_BOOT=1`, set `boot_size = 256`.
 - **Plymouth (the boot splash) is reported to hang this family's display.** Add `plymouth.enable=0` to the device cmdline, bump `pkgrel`, update the checksum.
@@ -42,7 +42,7 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 - **The user's terminal truncates long lines.** Put long commands in scripts; have the user run the short name.
 - **Never store the phone password in a file.** Ask the user each session; the user runs `sudo` or shares the PIN for that session only.
 - **`pkill -f`/`pgrep -f` can match and kill your own shell.** Run it in a separate command, or use a bracketed pattern like `[c]hromium`.
-- **A GUI app over SSH hangs the session.** Use `setsid -f … </dev/null >/tmp/log 2>&1` with `ssh -n`.
+- **A GUI app started with `setsid` over SSH dies when the session ends.** Start it with `systemd-run --user --unit=… --collect` and pass `WAYLAND_DISPLAY` and `XDG_RUNTIME_DIR`. [`guides/working-from-your-pc.md`](guides/working-from-your-pc.md)
 - **Port forwarding is off by default on postmarketOS.** Add `AllowTcpForwarding local` in `sshd_config.d`.
 - **DevTools screenshots show only the page.** Use `grim` for the real screen. [`guides/chromium-kiosk.md`](guides/chromium-kiosk.md)
 
@@ -51,7 +51,7 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 - **`--force-device-scale-factor` renders at 2.75× on Wayland** — scale in the compositor with `wlr-randr --scale 3` (whole number).
 - **A normal browser window can't be under 500 CSS px.** Use `--app=<url>` with `--kiosk`.
 - **The first-run dialog is wider than the screen.** Create `~/.config/chromium/First Run` or pass `--no-first-run`.
-- **Chromium in Phosh overflows 360 px.** Set the per-app `scale-to-fit` via `gsettings` (old `sm.puri.phoc` schema, with the session DBUS address).
+- **Chromium in Phosh overflows 360 px.** Set `scale-to-fit` globally with `gsettings` (old `sm.puri.phoc` schema, with the session DBUS address); the per-app switch leaves web-app windows cropped. [`guides/chromium-kiosk.md`](guides/chromium-kiosk.md)
 - **`cage` has no on-screen keyboard.** Build one into the web UI.
 - **`env(safe-area-inset-*)` is not filled here.** Keep your own top inset for the notch and corners.
 - **`Atomic commit failed: Resource busy`** in `cage` is occasional page-flip contention, not a crash — expect some jank.
@@ -81,4 +81,4 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 
 ## Last verified
 
-Compiled from the project notes; checked 2026-11-21.
+Checked 2026-11-21.

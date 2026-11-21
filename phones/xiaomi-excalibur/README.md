@@ -89,3 +89,30 @@ You can return to either Android or Ubuntu Touch from postmarketOS. Both go thro
 - Overall dossier: checked 2026-11-21.
 
 Items marked "not recorded" above come from the earlier Ubuntu Touch morning and were not retested; treat them as unknown rather than working.
+
+## Notes from the investigation
+
+Measurements and dead ends from the work on this phone. The guides keep the working method; these are the numbers behind it.
+
+### Charging
+
+- Wall charger, screen off: 75 % → 83 % in 30 min, voltage 4152 → 4228 mV (2026-11-21).
+- PC USB port: about 55–240 mA plugged in versus about 200–350 mA unplugged; one observed nudge was 97 → 98 % while plugged.
+- The battery gauge reported only about −200 mA while the voltage climbed clearly.
+- `s2idle` suspend slept 10:15–10:23 on 2026-11-21 and resumed, with a benign kernel warning on resume. Standby drain with the screen off was not measured.
+
+### Chromium kiosk
+
+- Measured viewport 360 × 800, `devicePixelRatio` 3, WebGL renderer `ANGLE (…, FD618, OpenGL ES 3.2)` (Mesa freedreno on the Adreno 618), and 58–60 fps with WebGL and CSS animations running. No hardware video decode (`vaInitialize failed`, expected).
+- Safe area at scale 3: top camera/notch region 101 px (≈ 34 CSS px), corner radius about 29 px (≈ 10 CSS px), camera hole x 491–581 px (≈ 164–194 CSS px).
+
+### Modem
+
+- The packaged `tqftpserv` 1.1.1 logged about 30 `RRQ … rsize=0 seek=0` per boot with the `/readwrite` files stuck at 0 bytes; upstream `v1.3-4-geb4b9a0` fixed it. After the fix the modem registered by itself about 27 s after boot.
+- Ruled out: the phone's own modem firmware (split parts extracted from the ROM's `NON-HLOS.bin`, joined into one `modem.mbn` with `squash-mdt.py`, version `MPSS.AT.4.4.c2-00030` from March 2021, placed at `/lib/firmware/updates/qcom/sm7125/miatoll/modem.mbn`; it loaded and behaved the same, then was removed); `pd-mapper` (the kernel's `qcom_pd_mapper` maps `qcom,sm7125` like the SC7180); the SIM slot (slot 2 → slot 1 only changed what the boot-time `msm-modem-uim-selection` picked); the card, IMEI and bands (all fine).
+
+### Ubuntu Touch
+
+- After switching to 24.04-2.x the top bar grew to 101 px and the icons split around the camera.
+- Screenshots were taken by injecting Volume Up + Volume Down into `/dev/input/event4` and `event0` with a `python3` script over SSH, then copying the newest file from `~/Pictures/Screenshots/`; the phone had to be unlocked.
+- The StevenBlack hosts list missed Taboola's `tblcontent.com`; `0.0.0.0` entries for it closed the gap.

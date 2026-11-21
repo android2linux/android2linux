@@ -22,10 +22,10 @@ If several devices are connected, `fastboot devices` lists them and every flash 
 A Xiaomi fastboot ROM archive and its contents can be checked before anything touches the phone:
 
 1. **Checksum in the filename.** The official archive name embeds an MD5 prefix, e.g. `...V12.0.4.0.QJXINXM...` with `933f5d8da9…` in the filename. Confirm the file's MD5 matches that prefix.
-2. **The ROM's own `md5sum.xml`.** Inside the extracted ROM, every image has an entry. Check all of them (the Android 10 ROM used here had **79 images**, all matching). A single mismatched image means a corrupted download — re-download rather than flash.
+2. **The ROM's own `md5sum.xml`.** Inside the extracted ROM, every image has an entry. Check all of them (the Android 10 ROM in this example had **79 images**, all matching). A single mismatched image means a corrupted download — re-download rather than flash.
 3. **The flash script's guards.** Read `flash_all.sh` before running it. The official script:
    - refuses any device whose codename is not the one the ROM is for,
-   - declares `CURRENT_ANTI_VER` (the Android 10 ROM declared `1`, equal to the phone's index, so the downgrade cannot trip anti-rollback),
+   - declares `CURRENT_ANTI_VER` (the Android 10 example ROM declared `1`, equal to the phone's index, so the downgrade cannot trip anti-rollback),
    - **never relocks the bootloader**.
 
 If those guards are not present, do not run it.
@@ -54,7 +54,7 @@ fastboot -s <serial> reboot
 
 ## Never relock
 
-The bootloader was unlocked to allow this. Relocking with modified software is the single most common way these phones die. Leave it unlocked permanently. "Ways back" to stock MIUI still leave it unlocked unless you deliberately run a lock script — don't.
+Relocking with modified software is the single most common way these phones die. Leave the bootloader unlocked permanently. "Ways back" to stock MIUI still leave it unlocked unless you deliberately run a lock script — don't.
 
 ## Wrong-variant flashes are the usual brick
 
@@ -62,14 +62,14 @@ Phones that look identical on the outside are different inside:
 
 - The Redmi Note 9 Pro Max (`excalibur`), Note 9S (`curtana`), Note 9 Pro global (`joyeuse`) and Poco M2 Pro (`gram`) are one family but **not interchangeable**. Never flash a ROM for a sibling.
 - Never flash a ROM from another **region**.
-- On a family with a community EDL recovery, a brick may be recoverable (for miatoll, reports describe `bkerler/edl` with a patched loader; not tried here). On many MediaTek phones, including the Poco X8 Pro Max, there is **no BROM rescue** at all — a wrong flash is final.
+- On a family with a community EDL recovery, a brick may be recoverable (for miatoll, reports describe `bkerler/edl` with a patched loader; treat it as untested). On many MediaTek phones, including the Poco X8 Pro Max, there is **no BROM rescue** at all — a wrong flash is final.
 
 The read-only `getvar product` check plus a ROM whose `flash_all.sh` enforces the codename is what prevents this.
 
 ## Fast mirrors for Xiaomi ROMs
 
-Xiaomi's main download server can be extremely slow (about 20 KB/s was observed). A mirror, `bn.d.miui.com`, delivered the same ROM at about 25 MB/s. Use a mirror for the download, then verify the checksum as above — a mirror is acceptable **because** you verify the file, not instead of verifying it. This repository does not link to firmware downloads; get the ROM for your exact model from Xiaomi's official channel and verify it.
+Xiaomi's main download server can be extremely slow (around 20 KB/s). A mirror, `bn.d.miui.com`, can deliver the same ROM at about 25 MB/s. Use a mirror for the download, then verify the checksum as above — a mirror is acceptable **because** you verify the file, not instead of verifying it. This repository does not link to firmware downloads; get the ROM for your exact model from Xiaomi's official channel and verify it.
 
 ## Last verified
 
-Verified ROM: `excalibur_in_global_images_V12.0.4.0.QJXINXM` (Android 10), MD5 `933f5d8da9…`, all 79 images matched `md5sum.xml`, `CURRENT_ANTI_VER=1`. Done 2026-11-20; checked 2026-11-21.
+Verified ROM: `excalibur_in_global_images_V12.0.4.0.QJXINXM` (Android 10), MD5 `933f5d8da9…`, all 79 images matched `md5sum.xml`, `CURRENT_ANTI_VER=1`, 2026-11-20. Checked 2026-11-21.

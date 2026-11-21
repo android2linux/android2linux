@@ -1,6 +1,6 @@
 # Working on the phone from your PC
 
-This guide is how you drive the phone from a Linux PC once Linux is on it: reaching it over SSH on USB networking or Wi-Fi, keeping an `ssh` config that survives reinstalls, using `adb` when you are still on Android or Ubuntu Touch, and the habits that make remote work reliable — how `sudo` is handled, why long commands go in scripts, the `pkill`/`pgrep` self-match trap, and launching GUI apps without hanging the session. It is the plumbing every other guide assumes; [`chromium-kiosk.md`](chromium-kiosk.md) is the common next step.
+This guide is how you drive the phone from a Linux PC once Linux is on it: reaching it over SSH on USB networking or Wi-Fi, keeping an `ssh` config that survives reinstalls, using `adb` when you are still on Android or Ubuntu Touch, and the habits that make remote work reliable — how `sudo` is handled, why long commands go in scripts, the `pkill`/`pgrep` self-match trap, launching GUI apps without hanging the session, and forwarding a browser's DevTools port. It is the plumbing every other guide assumes; [`chromium-kiosk.md`](chromium-kiosk.md) is the common next step.
 
 ## SSH over USB networking
 
@@ -24,7 +24,7 @@ Then:
 ssh -o UserKnownHostsFile=~/.ssh/known_hosts_pmos user@<phone-ip>
 ```
 
-Wi-Fi is set up in Phosh's settings; **NetworkManager** (`nmcli`) manages it. Note that BusyBox `ip` here takes `-o`, not `-br`.
+Wi-Fi is set up in Phosh's settings; **NetworkManager** (`nmcli`) manages it. BusyBox `ip` here takes `-o`, not `-br`.
 
 ## An `ssh` config that survives reinstalls
 
@@ -42,7 +42,7 @@ Use a **dedicated known-hosts file** for the phone: a reinstall changes its host
 
 On Android, enable Developer options and USB debugging. On Ubuntu Touch, set a passcode and turn on Settings → About → Developer Mode; `adb shell` then logs in as `phablet`. See [`ubuntu-touch.md`](ubuntu-touch.md). Once SSH works you rarely need `adb` again, but it is the bridge before SSH exists.
 
-## How the assistant should handle `sudo`
+## Handling `sudo`
 
 `sudo` on the phone asks for the **phone user's password** (a 4-digit PIN under Phosh's lock screen). There are two acceptable patterns, and one hard rule:
 
@@ -54,7 +54,7 @@ Commands the **user** has to type should be short, or wrapped in a script they r
 
 ## Keep long commands in scripts
 
-Two reasons: the truncation above, and quoting. A long one-liner over `ssh`, especially one that itself contains quotes for `sudo sh -c '…'`, is easy to break. Write it as a script, copy it over, run it. The reference project keeps its helpers as files for exactly this: `kiosk-on`, `kiosk-off`, `modem-diag`, `modem-reset`.
+Two reasons: the truncation above, and quoting. A long one-liner over `ssh`, especially one that itself contains quotes for `sudo sh -c '…'`, is easy to break. Write it as a script, copy it over, run it. Keep helpers such as `kiosk-on`, `kiosk-off`, `modem-diag` and `modem-reset` as files for exactly this.
 
 ## The `pkill`/`pgrep` self-match trap
 
@@ -77,7 +77,7 @@ ssh -n pmos 'systemd-run --user --unit=myapp --collect \
 ssh -n pmos 'systemctl --user stop myapp'      # to stop it
 ```
 
-`setsid -f app </dev/null >/tmp/log 2>&1` detaches the app from the terminal, but on systemd it still sits in the SSH session's process group, and **systemd stops that group when the session ends**: the app dies a few seconds after `ssh` returns (Chromium then logs "GPU process launch failed … isn't usable. Goodbye."). The same goes for loggers started that way. Pass `WAYLAND_DISPLAY` and `XDG_RUNTIME_DIR` explicitly, and for Chromium `--ozone-platform=wayland`: without them it may fall back to X11 and exit with "Missing X server".
+Don't start them with `setsid`: `setsid -f app </dev/null >/tmp/log 2>&1` detaches the app from the terminal, but on systemd it still sits in the SSH session's process group, and **systemd stops that group when the session ends**. The app dies a few seconds after `ssh` returns (Chromium then logs "GPU process launch failed … isn't usable. Goodbye."). The same goes for loggers started that way. Pass `WAYLAND_DISPLAY` and `XDG_RUNTIME_DIR` explicitly, and for Chromium `--ozone-platform=wayland`: without them it may fall back to X11 and exit with "Missing X server".
 
 ## DevTools over a tunnel
 
@@ -87,11 +87,11 @@ To inspect a browser on the phone, forward its remote-debugging port to the PC:
 ssh -f -N -L 127.0.0.1:9223:127.0.0.1:9222 pmos
 ```
 
-Then open `http://127.0.0.1:9223/json` on the PC. This needs `AllowTcpForwarding local`, which postmarketOS disables by default (add it in `/etc/ssh/sshd_config.d/60-local-forwarding.conf`). Full detail in [`chromium-kiosk.md`](chromium-kiosk.md).
+Then open `http://127.0.0.1:9223/json` on the PC (or `chrome://inspect` in Chrome). This needs **`AllowTcpForwarding local`** on the phone; postmarketOS ships `AllowTcpForwarding no`, so add it in `/etc/ssh/sshd_config.d/60-local-forwarding.conf` and restart SSH.
 
 ## Fastboot by hand
 
-Power off, unplug USB, hold **Volume Down** then **Power** until the bunny shows, then plug in. Over SSH, `ssh -t pmos 'sudo reboot bootloader'` should also work (it was the untried option in these notes; treat it as plausible rather than verified). Flashing itself is in [`safe-flashing.md`](safe-flashing.md).
+Power off, unplug USB, hold **Volume Down** then **Power** until the bunny shows, then plug in. Over SSH, `ssh -t pmos 'sudo reboot bootloader'` should also work; treat it as plausible rather than verified. Flashing itself is in [`safe-flashing.md`](safe-flashing.md).
 
 ## Last verified
 

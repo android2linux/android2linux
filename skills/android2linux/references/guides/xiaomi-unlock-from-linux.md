@@ -26,7 +26,7 @@ If it fails with *"Couldn't verify, sign in to your account again"*:
 2. Restart the phone.
 3. Sign back in, and repeat Add account and device with mobile data on.
 
-That sign-out/restart/sign-in was what fixed it in practice. See also the entry in [`../gotchas.md`](../gotchas.md).
+See also the entry in [`../gotchas.md`](../gotchas.md).
 
 ## 3. MIUI versus HyperOS
 
@@ -53,7 +53,7 @@ The tool then performs the unlock. Keep the phone connected and in fastboot for 
 
 ## What to expect
 
-- **A wait, or none.** The classic expectation is a 168-hour (7-day) wait after binding. On the Redmi Note 9 Pro Max the account got **no wait at all**: Xiaomi answered **"Unlock successful"** straight away.
+- **A wait, or none.** The classic expectation is a 168-hour (7-day) wait after binding, but Xiaomi can answer **"Unlock successful"** straight away if the account has no wait.
 - **It wipes the phone immediately.** Because there may be no waiting week to prepare, **back up before you press Enter**. You may not get a warning window.
 - **Verify it worked.** After it reboots, `fastboot getvar unlocked` should report `yes`.
 
@@ -64,4 +64,4 @@ The tool then performs the unlock. Keep the phone connected and in fastboot for 
 
 ## Last verified
 
-Unlock performed 2026-11-20 on a Redmi Note 9 Pro Max with MiUnlockTool 1.7.5. Checked 2026-11-21. Xiaomi changes its unlock policy and quota over time; re-check the current process for your model and HyperOS version before relying on the steps here.
+Performed 2026-11-20 with MiUnlockTool 1.7.5. Checked 2026-11-21. Xiaomi changes its unlock policy and quota over time; re-check the current process for your model and HyperOS version before relying on the steps here.

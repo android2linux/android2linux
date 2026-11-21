@@ -1,6 +1,6 @@
 # Communities and AI
 
-This guide is about working with the open-source communities whose software makes a Linux phone possible, without getting on the wrong side of their rules about AI. It records the AI policies of the projects involved here, with links and short quotes, and explains how to report a bug well. The position is simple: an AI assistant is what makes this realistic for someone who is not a specialist, and respecting each community's rules is part of doing the work well — not a reason to avoid AI.
+This guide is about working with the open-source communities whose software makes a Linux phone possible, while following their rules about AI. It records the AI policies of the projects involved, with links and short quotes, and explains how to report a bug well. An AI assistant makes this realistic for someone who is not a specialist, and respecting each community's rules is part of doing the work well.
 
 Policies change. Re-read the linked page before you post; the dates below are when these were checked, not a guarantee of what they say now.
 
@@ -31,7 +31,7 @@ The references are <https://docs.kernel.org/process/generated-content.html> and 
 
 ## ModemManager / libqmi: no policy found
 
-No AI policy was found for **ModemManager** or **libqmi** when these notes were checked. Treat that as "none known", not "explicitly allowed", and be transparent anyway.
+No AI policy was found for **ModemManager** or **libqmi** when these were checked. Treat that as "none known", not "explicitly allowed", and be transparent anyway.
 
 ## How to report a bug well
 
@@ -40,11 +40,11 @@ Whatever the community's AI policy, a good report contains evidence, not guesses
 1. **State the device and software precisely.** Codename, kernel version, package versions, and the distribution release. "Redmi Note 9 Pro Max (`excalibur`), postmarketOS v26.06, kernel 6.14.7" beats "my phone".
 2. **Say what you expected and what happened.** One sentence each.
 3. **Include the exact commands and their output.** Trim to the relevant lines; say what you trimmed.
-4. **Include what you already ruled out.** This is the part people skip and maintainers value most. If you stopped ModemManager, restarted the remoteproc, and it still failed, say so — it saves them asking and shows the report is grounded. See the narrowing steps in [`qualcomm-modem-debugging.md`](qualcomm-modem-debugging.md) as a model.
+4. **Include what you already ruled out.** If you stopped ModemManager, restarted the remoteproc, and it still failed, say so — it saves maintainers asking and shows the report is grounded. See the narrowing steps in [`qualcomm-modem-debugging.md`](qualcomm-modem-debugging.md) as a model.
 5. **Keep it reproducible.** A minimal sequence someone else can follow.
 6. **Follow the project's channel and policy.** Issues in the repo that takes them, not the one that doesn't; and for postmarketOS/Nura, written by you.
 
-A report that shows the work — what you tried, what you ruled out, what the logs say — is welcome in every community. That is also exactly the kind of work an assistant is good at helping you do *before* you write the report yourself.
+A report that shows the work — what you tried, what you ruled out, what the logs say — is welcome in every community. Doing that work is also where an assistant is most useful, before you write the report yourself.
 
 ## Last verified
 

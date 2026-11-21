@@ -1,8 +1,8 @@
 # postmarketOS on an unsupported variant
 
-This is the technique guide for the hardest case: a phone whose **family** is supported but whose exact variant is not. The worked example is the Redmi Note 9 Pro Max (`excalibur`), which has no device tree of its own and boots on the Note 9 Pro's (`joyeuse`), by patching the bootloader's device-tree match and building a device package locally. It covers reading a device's `deviceinfo`, building with `pmbootstrap` from git (the PyPI release is stale), the config and local-pmaports changes, the boot chain, how U-Boot chooses a device tree and the same-length placeholder patch that makes the match work, how to verify the patch by parsing and simulating, the flash order, and the first boot over USB networking. Read [`assess-your-phone.md`](assess-your-phone.md) first and [`safe-flashing.md`](safe-flashing.md) before the flash.
+This is the technique guide for the hardest case: a phone whose **family** is supported but whose exact variant is not. The worked example is the Redmi Note 9 Pro Max ([`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)), codename `excalibur`, which has no device tree of its own and boots on the Note 9 Pro's (`joyeuse`) tree by patching the bootloader's device-tree match and building a device package locally. It covers reading a device's `deviceinfo`, building with `pmbootstrap` from git (the PyPI release is stale), the config and local-pmaports changes, the boot chain, how U-Boot chooses a device tree and the same-length placeholder patch that makes the match work, how to verify the patch by parsing and simulating, the flash order, and the first boot over USB networking. Read [`assess-your-phone.md`](assess-your-phone.md) first and [`safe-flashing.md`](safe-flashing.md) before the flash.
 
-This is not a beginner path. On the Note 9 Pro Max it worked, and it is written down here so it is reproducible, but expect to reason about the boot chain rather than follow steps blindly.
+This is not a beginner path. Expect to reason about the boot chain rather than follow steps blindly.
 
 ## Reading the `deviceinfo` first
 
@@ -21,7 +21,7 @@ The `pmbootstrap` on PyPI is from 2023 and too old for current pmaports. Clone i
 
 ## Config tweaks
 
-You need a few settings that `pmbootstrap init` would normally write, plus a patch for the small boot partition.
+A few settings that `pmbootstrap init` would normally write need to be in place, plus a patch for the small boot partition.
 
 **The small-boot-partition patch.** On this family the kernel boot image goes into `cache`, which is 384 MiB — smaller than pmbootstrap insists on. Patch `pmb/install/_install.py`, function `sanity_check_boot_size()`, so that with `PMB_ALLOW_SMALL_BOOT=1` a `boot_size` below 512 is allowed ([`pmbootstrap-small-boot.patch`](../../scripts/pmbootstrap-small-boot.patch)). Then set `boot_size = 256` (`pmbootstrap config boot_size 256`).
 
@@ -37,7 +37,7 @@ You need a few settings that `pmbootstrap init` would normally write, plus a pat
 | timezone | e.g. `America/Sao_Paulo` |
 | extra package | `openssh-server` |
 
-It was written with pmbootstrap's own `Config` and `pmb.config.file.save`, not with `pmbootstrap init`.
+Write it with pmbootstrap's own `Config` and `pmb.config.file.save`, not with `pmbootstrap init`.
 
 **The work folder** `~/.local/var/pmbootstrap/`:
 
@@ -46,12 +46,12 @@ It was written with pmbootstrap's own `Config` and `pmb.config.file.save`, not w
 
 ## The local pmaports change
 
-The device package needed one cmdline addition that the official package lacks:
+The device package needs one cmdline addition that the official package lacks:
 
-- In `device/testing/device-xiaomi-miatoll/kernel-cmdline.conf`, add **`plymouth.enable=0`**. The community reports that Plymouth (the boot splash) hangs on this family's display driver; it was switched off before the first boot, so the hang was never seen here.
+- In `device/testing/device-xiaomi-miatoll/kernel-cmdline.conf`, add **`plymouth.enable=0`**. Plymouth (the boot splash) is reported to hang on this family's display driver; turn it off before the first boot.
 - Bump **`pkgrel` 1 → 2** and update the checksum in the `APKBUILD`. pmbootstrap builds this locally and its higher version wins over the official package.
 
-This is why updates on the phone are safe **as long as** the official `device-xiaomi-miatoll` stays below `9-r2` (official v26.06 was `9-r1` on 2026-11-20): apk keeps the higher version. If an update ever replaces it, check that `plymouth.enable=0` is still in `/boot/loader/entries/pmos.conf`, or rebuild your package with a higher `pkgrel`.
+Updates on the phone are safe **as long as** the official `device-xiaomi-miatoll` stays below `9-r2` (official v26.06 was `9-r1` on 2026-11-20): apk keeps the higher version. If an update ever replaces it, check that `plymouth.enable=0` is still in `/boot/loader/entries/pmos.conf`, or rebuild your package with a higher `pkgrel`.
 
 ## The boot chain
 
@@ -79,11 +79,11 @@ The only U-Boot release for this family (`u-boot-sm7125.img` from `github.com/sm
 
 U-Boot chooses a tree whose `/chosen/match/<name>` strings **all** appear in the command line ABL gives it — see `arch/arm/mach-snapdragon/of_match.c`. For this family those match strings are the **panel string** and **`androidboot.hwname=curtana|joyeuse`**.
 
-This phone's ABL says **`androidboot.hwname=excalibur`**, so nothing matches. Reading U-Boot's source shows what happens then: it carries on with the empty placeholder, which describes no hardware, so it can't boot Linux. (This was predicted from the source and never tried on the phone.)
+This phone's ABL says **`androidboot.hwname=excalibur`**, so nothing matches. U-Boot then carries on with the empty placeholder, which describes no hardware, so it can't boot Linux.
 
 ## The same-length placeholder patch
 
-The fix is to make the phone match the `joyeuse` tree:
+Make the phone match the `joyeuse` tree:
 
 - In the **appended placeholder** device tree (not the FIT), change the two `androidboot.hwname=joyeuse` strings at offsets `0x92077` and `0x920fb` to **`androidboot.hwname=excalib`** — a substring of `excalibur`, same length. The patch touches **14 bytes** in the placeholder (spanning offsets `0x91e67`–`0x9215f`).
 - Leave the FIT copy alone. It is CRC-protected, and you do not need to touch it: the placeholder is what ABL fills and what U-Boot matches against.
@@ -116,14 +116,14 @@ From the project directory, with the patch and config in place:
 PMB_ALLOW_SMALL_BOOT=1 pmbootstrap install
 ```
 
-This asks for the PC's sudo password and the phone user's password; the **user runs it**. Outputs in `~/.local/var/pmbootstrap/chroot_native/home/pmos/rootfs/`:
+This asks for the PC's sudo password and the phone user's password, so the **user runs it**. Outputs in `~/.local/var/pmbootstrap/chroot_native/home/pmos/rootfs/`:
 
 - `xiaomi-miatoll-boot.img` — 256 MiB FAT32 with the kernel, initramfs, `dtbs/`, systemd-boot and `loader/entries/pmos.conf`.
 - `xiaomi-miatoll-root.img` — the ext4 root filesystem.
 
 Both are world-readable, so plain `fastboot` flashes them without root. Inspect the boot image with `mdir`/`mtype -i <boot.img>` (set `MTOOLS_SKIP_CHECK=1`).
 
-The packages built for this device were `device-xiaomi-miatoll-9-r2` (the local build) and `firmware-xiaomi-miatoll-1-r1`.
+The packages for this device are `device-xiaomi-miatoll-9-r2` (the local build) and `firmware-xiaomi-miatoll-1-r1`.
 
 ## Flash order
 
@@ -136,7 +136,7 @@ fastboot -s <serial> flash boot     path/to/u-boot-sm7125-excalibur.img
 fastboot -s <serial> reboot
 ```
 
-This is the order used here: kernel side into `cache`, system into `userdata`, erase `dtbo`, U-Boot into `boot`, then reboot. Nothing boots until all four are written, so a different order would likely work too. `-s <serial>` on every write (see [`safe-flashing.md`](safe-flashing.md)).
+Kernel side into `cache`, system into `userdata`, erase `dtbo`, U-Boot into `boot`, then reboot. Nothing boots until all four are written; a different order works too. Put `-s <serial>` on every write (see [`safe-flashing.md`](safe-flashing.md)).
 
 ## First boot over USB networking
 

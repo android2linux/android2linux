@@ -1,6 +1,6 @@
 # Debugging a Qualcomm modem on Linux
 
-This guide is the investigation method that took a modem from "present but refusing to come online" to registered, with data, SMS and calls, on a mainline Qualcomm phone. It is written as a sequence of narrowing steps: confirm the basics, learn the operating-mode states, rule out ModemManager, compare against an OS where the modem works, read the helper-service logs, apply the fix, and know what was ruled out along the way. The actual cause was a userspace helper (`tqftpserv`), not the modem firmware. Use it with [`working-from-your-pc.md`](working-from-your-pc.md) for running commands on the phone and [`../devices/xiaomi-redmi-note-9-pro-max.md`](../../../../phones/xiaomi-excalibur/) for the device context.
+This guide is the method for taking a modem from "present but refusing to come online" to registered, with data, SMS and calls, on a mainline Qualcomm phone. Work through the narrowing steps in order: confirm the basics, learn the operating-mode states, rule out ModemManager, compare against an OS where the modem works, read the helper-service logs, apply the fix, and know which log noise to ignore. One cause, covered here in full, is a userspace helper (`tqftpserv`), not the modem firmware. Use it with [`working-from-your-pc.md`](working-from-your-pc.md) for running commands on the phone; for device context see [`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/).
 
 ## 1. Confirm the basics
 
@@ -31,7 +31,7 @@ qmicli -d qrtr://0 -p --dms-get-operating-mode
 qmicli -d qrtr://0 -p --dms-set-operating-mode=low-power   # or offline, online, reset
 ```
 
-What the Note 9 Pro Max's modem did, which is the pattern to recognise:
+The pattern to recognise is a modem that accepts every mode except `online`:
 
 | Request | Result |
 |---|---|
@@ -40,9 +40,9 @@ What the Note 9 Pro Max's modem did, which is the pattern to recognise:
 | `offline` | accepted |
 | `online` | refused: `DeviceNotReady` |
 | `offline` → `low-power` | refused: `InvalidTransition` |
-| `reset` (from `shutting-down` or `offline`) | accepted, but the modem never actually restarted: no restart in the kernel log, same mode afterwards |
+| `reset` (from `shutting-down` or `offline`) | accepted, but no actual restart: no restart in the kernel log, same mode afterwards |
 
-The modem reported no "offline reason". A modem that accepts every mode except `online` thinks something it needs isn't ready, which points at what it depends on, not at the radio.
+A modem that accepts every mode except `online` thinks something it needs isn't ready, which points at what it depends on, not at the radio.
 
 Since `reset` may do nothing, restart the modem's processor through the kernel instead, as root:
 
@@ -52,7 +52,7 @@ echo start > /sys/class/remoteproc/remoteproc0/state
 dmesg | grep -i remoteproc0
 ```
 
-Watch `dmesg` for `remoteproc`, `qcom_q6v5`, `modem`, `sysmon`, `crash`, `fatal`. A clean "remote processor modem is now up" with no crash tells you the firmware loaded and the problem is above it.
+Watch `dmesg` for `remoteproc`, `qcom_q6v5`, `modem`, `sysmon`, `crash`, `fatal`. A clean "remote processor modem is now up" with no crash means the firmware loaded and the problem is above it.
 
 ## 3. Rule out ModemManager
 
@@ -63,11 +63,11 @@ ModemManager changes the modem's mode on its own, so take it out of the picture:
 3. Read the mode **before anything touches it**, then try `online` by hand with `qmicli`.
 4. Start ModemManager again afterwards.
 
-On this phone the freshly restarted modem was **already in `shutting-down`** with ModemManager stopped, and `online` was still refused. So ModemManager was ruled out, and the modem was giving up during its own startup: something it needs from the Linux side in its first seconds was missing.
+If a freshly restarted modem is **already in `shutting-down`** with ModemManager stopped, and `online` is still refused, ModemManager is ruled out: the modem is giving up during its own startup, and something it needs from the Linux side in its first seconds is missing.
 
 ## 4. Compare with an OS where it works
 
-If the modem works under another OS (Android, or Ubuntu Touch over Android's kernel and services), you have a known-good baseline: same SIM, same tower, same bands. That comparison rules out the SIM, the carrier account and the hardware, and tells you the fault is in the Linux userspace or kernel you are debugging. On the Note 9 Pro Max, Ubuntu Touch had a working mobile data connection on the same SIM, so the hardware and SIM were never suspect.
+If the modem works under another OS (Android, or Ubuntu Touch over Android's kernel and services), you have a known-good baseline: same SIM, same tower, same bands. That comparison rules out the SIM, the carrier account and the hardware, and tells you the fault is in the Linux userspace or kernel you are debugging.
 
 ## 5. Read the helper-service logs
 
@@ -81,15 +81,13 @@ journalctl -b -u tqftpserv -u rmtfs --no-pager
 ls -la /tmp/tqftpserv /var/lib/tqftpserv   # where the /readwrite files land, depending on the version
 ```
 
-The tell was in `tqftpserv`'s log and that folder. The modem wrote `lctoem.tmp` and `mcfg.tmp` (its configuration system, MCFG), then checked their size with **`RRQ … rsize=0 seek=0`**, and did that **about 30 times per boot**. The files in `/readwrite` **stayed 0 bytes**. A modem that can't save and verify its configuration files gives up and refuses `online`.
+The tell is in `tqftpserv`'s log and that folder. The modem writes `lctoem.tmp` and `mcfg.tmp` (its configuration system, MCFG), then checks their size with **`RRQ … rsize=0 seek=0`**, about 30 times per boot. If the files in `/readwrite` **stay 0 bytes**, the modem cannot save and verify its configuration files and gives up, refusing `online`.
 
-The cause was **`tqftpserv` 1.1.1**, the version packaged in postmarketOS v26.06: it treated "option requested with value 0" as "option not requested", so the modem's size checks on empty files never got the reply they expected. Upstream fixed it in pull request #50 (September 2026: "a stat-style query against an empty file and an explicit zero seek were silently dropped from the OACK").
-
-Some lines in that log are noise: the modem tries several paths for `wlanmdsp.mbn` (`/readonly/vendor/firmware_mnt/…`, `/readonly/vendor/firmware/…`) and gets it from the last one, and `ota_firewall/ruleset` is simply absent.
+The cause is **`tqftpserv` 1.1.1**, the version packaged in postmarketOS v26.06: it treats "option requested with value 0" as "option not requested", so the modem's size checks on empty files never get the reply they expect. Upstream fixed it in pull request #50 (September 2026: "a stat-style query against an empty file and an explicit zero seek were silently dropped from the OACK").
 
 ## 6. The fix
 
-Use the **upstream `tqftpserv`**, version 1.3 or newer. The one used here was `v1.3-4-geb4b9a0` from `github.com/linux-msm/tqftpserv`, built on the phone itself with **meson** from a checkout in `/tmp/tq`, and installed as `/usr/local/bin/tqftpserv`.
+Use the **upstream `tqftpserv`**, version 1.3 or newer. A known-good build is `v1.3-4-geb4b9a0` from `github.com/linux-msm/tqftpserv`, built on the phone itself with **meson** from a checkout in `/tmp/tq`, and installed as `/usr/local/bin/tqftpserv`.
 
 Override the packaged service with a systemd drop-in at `/etc/systemd/system/tqftpserv.service.d/zz-upstream.conf`:
 
@@ -107,27 +105,19 @@ sudo systemctl daemon-reload
 sudo systemctl restart tqftpserv
 ```
 
-The result on this phone: the modem registered **by itself about 27 s after boot**, data reconnected automatically, and after a real reboot it came up without intervention. SMS worked both ways (`mmcli --messaging-create-sms` to send, text quoted as `text='…'`; Chatty ingests the reply), and calls connected with `mmcli --voice-create-call`, which starts the call by itself. **Call audio was unverified**; `q6voiced`, which routes call audio, is in the v26.06 repo but was not installed.
+With the fix, the modem registers **by itself shortly after boot**, data reconnects automatically, and it keeps coming up after a reboot without intervention. SMS works both ways (`mmcli --messaging-create-sms` to send, text quoted as `text='…'`; Chatty ingests the reply), and calls connect with `mmcli --voice-create-call`, which starts the call by itself. Call audio probably also needs **`q6voiced`**, which routes call audio; it is in the v26.06 repository but not installed by default.
 
 The packaged 1.1.1 stays installed underneath. **If postmarketOS/Nura ever ships `tqftpserv` ≥ 1.3, remove the override** so the packaged one takes over.
 
 **To undo:** delete the drop-in, then `systemctl daemon-reload` and `systemctl restart tqftpserv`.
 
-## What was ruled out
+## Noise you can ignore
 
-These were suspected, checked and ruled out:
-
-- **The phone's own modem firmware.** Xiaomi's modem firmware differs per variant, so the variant's own firmware was a natural suspect. Its split parts (`modem.mdt` + `modem.b00…`) were extracted from the ROM's `NON-HLOS.bin`, joined into one `modem.mbn` with [`squash-mdt.py`](../../scripts/squash-mdt.py), and placed at `/lib/firmware/updates/qcom/sm7125/miatoll/modem.mbn`, where the kernel prefers it over the packaged copy. It loaded (`MPSS.AT.4.4.c2-00030`, March 2021) and behaved exactly the same, so it was removed again. Delete the file and reboot to undo.
-- **`pd-mapper`.** The userspace `pd-mapper` service isn't installed, but the kernel's built-in `qcom_pd_mapper` maps `qcom,sm7125` to the same table as the SC7180 (modem domains `msm/modem/root_pd`, `msm/modem/wlan_pd`), so the modem's service lookups are answered.
-- **The SIM slot.** The SIM was first in slot 2; moving it to slot 1 changed which slot the boot-time `msm-modem-uim-selection` picked, and nothing else.
-- **The card, IMEI and bands.** Card present and ready, no PIN, IMEI present, LTE bands covering the carrier.
-
-All are reasonable suspects when a modem won't come online; ruling them out is what pointed to the file server.
-
-## Harmless noise
-
-NetworkManager logs an MTU warning on `qrtr0` and a failure from `50-dns-filter.sh`. Neither breaks connectivity; do not chase them as the cause.
+- NetworkManager logs an MTU warning on `qrtr0` and a failure from `50-dns-filter.sh`; neither affects connectivity.
+- In `tqftpserv`'s log, the modem tries several paths for `wlanmdsp.mbn` before the one that works, and asks for `ota_firewall/ruleset`, which doesn't exist.
+- The userspace `pd-mapper` service may not be installed: the kernel's built-in `qcom_pd_mapper` answers the modem's service lookups on current kernels.
+- Swapping in the phone variant's own modem firmware is not needed for this fix (on the Redmi Note 9 Pro Max it made no difference; see [`phones/xiaomi-excalibur`](../../../../phones/xiaomi-excalibur/)).
 
 ## Last verified
 
-Modem working (Claro, LTE, ~71 % signal, ~28.6 Mbit/s down over IPv4 + IPv6, auto-registration after reboot), SMS both ways, calls connecting: 2026-11-21. Call audio not verified. Checked 2026-11-21.
+Modem working (LTE, auto-registration after reboot), SMS both ways, calls connecting: 2026-11-21. Call audio not verified. Checked 2026-11-21.
