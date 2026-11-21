@@ -45,7 +45,7 @@ The full list, generated from each phone's `phone.json`, is in [`phones/`](phone
 **With an AI assistant.** Install the skill so the assistant uses it when you talk about Linux on phones. Link it from a clone rather than copying it: the skill reads the `phones/` and `apps/` folders next to it, and `git pull` keeps everything current. For Claude Code:
 
 ```sh
-git clone https://github.com/alantriesagain/android2linux ~/android2linux
+git clone https://github.com/android2linux/android2linux ~/android2linux
 mkdir -p ~/.claude/skills
 ln -s ~/android2linux/skills/android2linux ~/.claude/skills/android2linux
 ```
