@@ -96,9 +96,9 @@ The interface of a Linux phone is ordinary software that can be changed or repla
 
 A phone interface inspired by Metro, the design of Windows Phone and still one of the best phone interfaces made: live tiles, an address bar at the bottom, quick settings that count the trackers blocked. It's being built as a web app to run full-screen in Chromium. These are design renders, not screenshots yet.
 
-| Lock screen | Start | Quick settings | Browser |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/images/ui-lock.png" width="180" alt="Lock screen: the time, a notification and the music playing"> | <img src="docs/images/ui-start.png" width="180" alt="Start screen of live tiles and pinned sites"> | <img src="docs/images/ui-quick-settings.png" width="180" alt="Quick settings with Wi-Fi, blocking and notifications"> | <img src="docs/images/ui-browser.png" width="180" alt="Browser with the address bar at the bottom and a blocked-trackers count"> |
+| Lock screen | Start | Quick settings | Browser | Files |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="docs/images/ui-lock.png" width="150" alt="Lock screen: the time, a notification and the music playing"> | <img src="docs/images/ui-start.png" width="150" alt="Start screen of live tiles and pinned sites"> | <img src="docs/images/ui-quick-settings.png" width="150" alt="Quick settings with Wi-Fi, blocking and notifications"> | <img src="docs/images/ui-browser.png" width="150" alt="Browser with the address bar at the bottom and a blocked-trackers count"> | <img src="docs/images/ui-files.png" width="150" alt="Files: downloads with the actions at the bottom"> |
 
 ## Contributing
 
