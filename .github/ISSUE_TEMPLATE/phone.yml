@@ -1,6 +1,7 @@
 name: A phone
 description: A phone you tried Linux on, whether it worked or not
 title: "Phone: <vendor> <model> (<codename>)"
+labels: [phone]
 body:
   - type: markdown
     attributes:

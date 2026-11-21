@@ -1,6 +1,7 @@
 name: A guide fix
 description: A step that is wrong, missing or out of date
 title: "Guide: <guide>: <what>"
+labels: [guide]
 body:
   - type: input
     id: guide

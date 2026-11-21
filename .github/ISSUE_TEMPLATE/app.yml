@@ -1,6 +1,7 @@
 name: An app
 description: A web app to rework for a phone screen, a new adapter, or one that broke
 title: "App: <name>"
+labels: [app]
 body:
   - type: markdown
     attributes:

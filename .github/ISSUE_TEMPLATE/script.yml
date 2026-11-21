@@ -1,6 +1,7 @@
 name: A script bug
 description: A script in scripts/ that fails or does the wrong thing
 title: "Script: <name>: <what>"
+labels: [script]
 body:
   - type: markdown
     attributes:
