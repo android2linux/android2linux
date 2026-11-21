@@ -137,8 +137,12 @@ def check_scripts(root: str, device: str | None, anti: str | None,
 
     if anti_ver is None:
         failures.append("could not read CURRENT_ANTI_VER from flash_all.sh")
-    elif anti is not None and anti_ver != str(anti):
-        failures.append(f"anti mismatch: ROM wants {anti_ver}, phone has {anti}")
+    elif anti is not None and int(anti_ver) < int(anti):
+        failures.append(f"anti-rollback: the ROM's index {anti_ver} is lower than the phone's {anti}; "
+                        "flashing it would hard-brick the phone")
+    elif anti is not None and int(anti_ver) > int(anti):
+        print(f"WARNING: the ROM's anti-rollback index {anti_ver} is higher than the phone's {anti}: "
+              "flashing it raises the phone's index for good, and older firmware can't be flashed after that")
 
     if os.path.isfile(os.path.join(root, "flash_all_lock.sh")):
         print("WARNING: flash_all_lock.sh RELOCKS the bootloader - never run it.")

@@ -1,75 +1,62 @@
 # Safe flashing
 
-This guide is the discipline that keeps a flash from turning a phone into a brick. It covers the read-only checks to run before any write, how to verify a Xiaomi fastboot ROM before you run it (checksum in the filename, the ROM's own `md5sum.xml`, and what `flash_all.sh` guarantees), how to target one device with `-s`, why you never relock, why a wrong-variant flash is the usual brick, and how to use a fast mirror when the vendor's server crawls. Every command here is something to understand before you type it; the checks are cheap, the mistakes are not.
+How to flash without bricking the phone: read-only checks before any write, verifying a Xiaomi fastboot ROM, targeting one device, and the scripts and images you never use.
 
 ## Read-only checks first
 
-Before flashing anything, ask the phone what it is and what state it is in. These commands do not write:
+Before flashing anything, ask the phone what it is and what state it's in. These commands don't write:
 
 ```sh
-fastboot getvar product      # must be your codename, e.g. excalibur
+fastboot devices             # the serial of every phone in fastboot mode
+fastboot getvar product      # the codename, e.g. excalibur
 fastboot getvar anti         # anti-rollback index
 fastboot getvar unlocked     # yes once unlocked
-fastboot getvar slot-count   # 1 = A-only, 2 = A/B
 ```
 
-If `product` is not the codename you expect, **stop**. You are about to flash the wrong phone or a mislabelled image.
+If `product` isn't the codename the image is for, stop.
 
-If several devices are connected, `fastboot devices` lists them and every flash must name one with `-s <serial>`. Do not rely on "the only one connected" staying true mid-session.
+## One device, by serial
 
-## Verify a Xiaomi fastboot ROM before running it
+Put `-s <serial>` on every `fastboot` command that writes, so only that phone is touched even if another one is connected or the phone re-enumerates:
 
-A Xiaomi fastboot ROM archive and its contents can be checked before anything touches the phone:
+```sh
+fastboot -s <serial> flash boot <image>
+fastboot -s <serial> erase dtbo
+fastboot -s <serial> reboot
+```
 
-1. **Checksum in the filename.** The official archive name embeds an MD5 prefix, e.g. `...V12.0.4.0.QJXINXM...` with `933f5d8da9…` in the filename. Confirm the file's MD5 matches that prefix.
-2. **The ROM's own `md5sum.xml`.** Inside the extracted ROM, every image has an entry. Check all of them (the Android 10 ROM in this example had **79 images**, all matching). A single mismatched image means a corrupted download — re-download rather than flash.
-3. **The flash script's guards.** Read `flash_all.sh` before running it. The official script:
-   - refuses any device whose codename is not the one the ROM is for,
-   - declares `CURRENT_ANTI_VER` (the Android 10 example ROM declared `1`, equal to the phone's index, so the downgrade cannot trip anti-rollback),
-   - **never relocks the bootloader**.
+## Verify a Xiaomi fastboot ROM
 
-If those guards are not present, do not run it.
+[`check-rom.py`](../../scripts/check-rom.py) runs all of these checks on the archive or the unpacked folder:
 
-## The scripts you must never run
+```sh
+scripts/check-rom.py excalibur_in_global_images_….tgz --device excalibur --anti 1
+```
 
-- **`flash_all_lock.sh`** — it relocks the bootloader at the end. With anything but stock MIUI on the phone, this bricks it. Never run it.
-- Any flash script from a ROM for a **different codename or region**, even a sibling variant. See below.
+What it checks, and why:
 
-Run only the plain `flash_all.sh`:
+1. **The archive's checksum.** The official archive name ends with the first 10 hex characters of its MD5 (`…_10.0_in_933f5d8da9.tgz`). A mismatch means a damaged download.
+2. **Every image** against the ROM's own `md5sum.xml`. One bad image is reason enough to download again.
+3. **The codename** in `flash_all.sh`'s first line, which refuses any other device.
+4. **The anti-rollback index.** `flash_all.sh` declares `CURRENT_ANTI_VER`, but the script may not compare it with the phone's; compare it yourself. Never flash a ROM whose index is **lower** than the phone's (`fastboot getvar anti`).
+
+Then run the plain script, with the serial:
 
 ```sh
 bash flash_all.sh -s <serial>
 ```
 
-## `-s <serial>` on every command
-
-With more than one device, or with a device that re-enumerates, an unqualified `fastboot flash` can write to the wrong target. Put `-s <serial>` on every `fastboot` write and on `erase`:
-
-```sh
-fastboot -s <serial> flash boot  <image>
-fastboot -s <serial> flash cache <image>
-fastboot -s <serial> erase dtbo
-fastboot -s <serial> reboot
-```
-
 ## Never relock
 
-Relocking with modified software is the single most common way these phones die. Leave the bootloader unlocked permanently. "Ways back" to stock MIUI still leave it unlocked unless you deliberately run a lock script — don't.
+- Never run **`flash_all_lock.sh`**, nor `fastboot flashing lock` or `oem lock`. Relocking with anything but the vendor's stock firmware on the phone bricks it. Leave the bootloader unlocked; going back to stock with `flash_all.sh` keeps it unlocked.
+- Never flash an image for **another codename or region**, even a sibling: the Redmi Note 9 Pro Max (`excalibur`), Note 9S (`curtana`), Note 9 Pro (`joyeuse`) and Poco M2 Pro (`gram`) are one family, and their ROMs aren't interchangeable. A wrong-variant flash is a common way to hard-brick a phone.
 
-## Wrong-variant flashes are the usual brick
+Some families have a community recovery for hard bricks (for `miatoll`, reports describe `bkerler/edl` with a patched loader); recent MediaTek phones often have no public BROM rescue. Plan as if there were none.
 
-Phones that look identical on the outside are different inside:
+## Downloading Xiaomi ROMs
 
-- The Redmi Note 9 Pro Max (`excalibur`), Note 9S (`curtana`), Note 9 Pro global (`joyeuse`) and Poco M2 Pro (`gram`) are one family but **not interchangeable**. Never flash a ROM for a sibling.
-- Never flash a ROM from another **region**.
-- On a family with a community EDL recovery, a brick may be recoverable (for miatoll, reports describe `bkerler/edl` with a patched loader; treat it as untested). On many MediaTek phones, including the Poco X8 Pro Max, there is **no BROM rescue** at all — a wrong flash is final.
-
-The read-only `getvar product` check plus a ROM whose `flash_all.sh` enforces the codename is what prevents this.
-
-## Fast mirrors for Xiaomi ROMs
-
-Xiaomi's main download server can be extremely slow (around 20 KB/s). A mirror, `bn.d.miui.com`, can deliver the same ROM at about 25 MB/s. Use a mirror for the download, then verify the checksum as above — a mirror is acceptable **because** you verify the file, not instead of verifying it. This repository does not link to firmware downloads; get the ROM for your exact model from Xiaomi's official channel and verify it.
+Xiaomi serves the same files from several CDN hosts, at very different speeds: `bigota.d.miui.com` can be as slow as 20 KB/s, `bn.d.miui.com` about 25 MB/s. Keep the path and swap the host, then verify the file as above. [Xiaomi Firmware Updater](https://xmfirmwareupdater.com) lists the official ROMs by codename and version.
 
 ## Last verified
 
-Verified ROM: `excalibur_in_global_images_V12.0.4.0.QJXINXM` (Android 10), MD5 `933f5d8da9…`, all 79 images matched `md5sum.xml`, `CURRENT_ANTI_VER=1`, 2026-11-20. Checked 2026-11-21.
+`check-rom.py` and the checks above on `excalibur_in_global_images_V12.0.4.0.QJXINXM` (Android 10): 79 images matched, `CURRENT_ANTI_VER=1`; 2026-11-21.
