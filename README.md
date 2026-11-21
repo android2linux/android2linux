@@ -1,8 +1,15 @@
-# android2linux
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/lockup-dark.svg">
+    <img src="docs/brand/lockup-light.svg" alt="android2linux" height="64">
+  </picture>
+</h1>
 
 Turn an Android phone into a Linux pocket computer you control.
 
-A phone running Linux ([postmarketOS](https://postmarketos.org), [Ubuntu Touch](https://ubports.com)) needs no Google account and shares only what you choose. It's a real computer in your pocket: a terminal, SSH, your own scripts and web apps, an interface you can change. It won't run everything an Android phone does: banking apps and other apps that require Android or Google's integrity checks won't work. A practical setup is to carry the Linux phone and keep an Android phone at home for those apps, which cuts much of what a phone shares day to day.
+A phone running Linux ([postmarketOS](https://postmarketos.org), [Ubuntu Touch](https://ubports.com)) needs no Google account. It's a real computer in your pocket: a terminal, SSH, your own scripts and web apps, an interface you can change. It won't hide you from intelligence agencies (yet?): the modem still runs closed firmware and the carrier still knows where you are. But it shares far less with Google and the companies that buy ads.
+
+It won't run everything an Android phone does: banking apps and other apps that require Android or Google's integrity checks won't work. A practical setup is to carry the Linux phone and keep an Android phone at home for those apps.
 
 Getting Linux onto a particular phone means finding the right port, unlocking the bootloader, flashing safely and fixing whatever hardware doesn't work yet. The information is spread across wikis, forums and source code, and mistakes can brick the phone. An AI assistant can do that research for your exact phone, check each step before it runs, and explain what it does. This repository gives the assistant the method, the safety rules and what has already been learned, and gives you the same material to read.
 
