@@ -94,7 +94,7 @@ The interface of a Linux phone is ordinary software that can be changed or repla
 
 ### In progress: a phone interface
 
-A phone interface inspired by Metro, the design of Windows Phone and still one of the best phone interfaces made: live tiles, an address bar at the bottom, quick settings that count the trackers blocked. It's being built as a web app to run full-screen in Chromium. These are design renders, not screenshots yet.
+A phone interface inspired by Metro, the design of Windows Phone: live tiles, an address bar at the bottom, quick settings that count the trackers blocked. It's being built as a web app to run full-screen in Chromium. These are design renders, not screenshots yet.
 
 | Lock screen | Start | Quick settings | Browser | Files |
 |:---:|:---:|:---:|:---:|:---:|
