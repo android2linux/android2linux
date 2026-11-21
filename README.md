@@ -53,8 +53,8 @@ The full list, generated from each phone's `phone.json`, is in [`phones/`](phone
 
 | Ubuntu Touch 24.04 | | postmarketOS v26.06 |
 |:---:|:---:|:---:|
-| <img src="docs/images/ubuntu-touch-home.png" width="220" alt="Ubuntu Touch home screen with the launcher"> | <img src="docs/images/ubuntu-touch-apps.png" width="220" alt="Ubuntu Touch app drawer"> | <img src="docs/images/postmarketos-chromium-keyboard.png" width="220" alt="Chromium in Phosh with the on-screen keyboard, 4G in the status bar"> |
-| Home screen | App drawer | Chromium in Phosh, on 4G |
+| <img src="docs/images/ubuntu-touch-home.png" width="220" alt="Ubuntu Touch home screen with the launcher"> | <img src="docs/images/ubuntu-touch-apps.png" width="220" alt="Ubuntu Touch app drawer"> | <img src="docs/images/postmarketos-apps.png" width="220" alt="The Phosh app grid on postmarketOS: Console, Chromium, Firefox, Lichess and the standard apps"> |
+| Home screen | App drawer | App grid in Phosh |
 
 ## Getting started
 
@@ -102,9 +102,9 @@ The interface of a Linux phone is ordinary software that can be changed or repla
 
 A phone interface inspired by Metro, the design of Windows Phone: live tiles, an address bar at the bottom, quick settings that count the trackers blocked. It's being built as a web app to run full-screen in Chromium. These are design renders, not screenshots yet.
 
-| Lock screen | Start | Quick settings | Browser | Files |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="docs/images/ui-lock.png" width="150" alt="Lock screen: the time, a notification and the music playing"> | <img src="docs/images/ui-start.png" width="150" alt="Start screen of live tiles and pinned sites"> | <img src="docs/images/ui-quick-settings.png" width="150" alt="Quick settings with Wi-Fi, blocking and notifications"> | <img src="docs/images/ui-browser.png" width="150" alt="Browser with the address bar at the bottom and a blocked-trackers count"> | <img src="docs/images/ui-files.png" width="150" alt="Files: downloads with the actions at the bottom"> |
+| Lock screen | Start | Quick settings | Files |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/ui-lock.png" width="180" alt="Lock screen: the time, a notification and the music playing"> | <img src="docs/images/ui-start.png" width="180" alt="Start screen of live tiles and pinned sites"> | <img src="docs/images/ui-quick-settings.png" width="180" alt="Quick settings with Wi-Fi, blocking and notifications"> | <img src="docs/images/ui-files.png" width="180" alt="Files: downloads with the actions at the bottom"> |
 
 ## Contributing
 
