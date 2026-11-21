@@ -21,6 +21,7 @@ Getting Linux onto a particular phone means finding the right port, unlocking th
 - [Safety](#safety)
 - [Guides](#guides)
 - [Apps](#apps)
+- [Make it yours](#make-it-yours)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -86,6 +87,18 @@ Flashing a phone can destroy it and its data. The skill and the guides keep to a
 ## Apps
 
 Many services have no Linux app, only a web app made for a desktop screen. Each folder in [`apps/`](apps/) turns one into a phone app: the site in a Chromium window that fits the screen, an extension that adapts the layout where needed, and an icon in the app grid. [WhatsApp](apps/whatsapp/) is the first; [`apps/dev/`](apps/dev/) has the tools to build more.
+
+## Make it yours
+
+The interface of a Linux phone is ordinary software that can be changed or replaced. Phosh, the default on postmarketOS, is one of several shells to choose from (Plasma Mobile and Sxmo are others); [`apps/`](apps/) turns web apps into phone apps; and a whole interface can be a web page running full-screen in Chromium ([Chromium kiosk](skills/android2linux/references/guides/chromium-kiosk.md)).
+
+### In progress: a phone interface
+
+A phone interface inspired by Metro, the design of Windows Phone and still one of the best phone interfaces made: live tiles, an address bar at the bottom, quick settings that count the trackers blocked. It's being built as a web app to run full-screen in Chromium. These are design renders, not screenshots yet.
+
+| Lock screen | Start | Quick settings | Browser |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/ui-lock.png" width="180" alt="Lock screen: the time, a notification and the music playing"> | <img src="docs/images/ui-start.png" width="180" alt="Start screen of live tiles and pinned sites"> | <img src="docs/images/ui-quick-settings.png" width="180" alt="Quick settings with Wi-Fi, blocking and notifications"> | <img src="docs/images/ui-browser.png" width="180" alt="Browser with the address bar at the bottom and a blocked-trackers count"> |
 
 ## Contributing
 
