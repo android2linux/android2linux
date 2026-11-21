@@ -1,0 +1,35 @@
+name: An app
+description: A web app to rework for a phone screen, a new adapter, or one that broke
+title: "App: <name>"
+body:
+  - type: markdown
+    attributes:
+      value: Never attach screenshots that show messages, contacts or other personal content. Describe the layout instead.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is it
+      options:
+        - a site to rework into a phone app
+        - an app I made and want to add
+        - an app here that broke
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Site
+      placeholder: https://web.whatsapp.com/
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What goes wrong on a phone screen, or what broke
+    validations:
+      required: true
+  - type: input
+    id: tested
+    attributes:
+      label: Phone, system and browser
+      placeholder: excalibur, postmarketOS v26.06, Phosh, Chromium 156

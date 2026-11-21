@@ -1,0 +1,63 @@
+name: A phone
+description: A phone you tried Linux on, whether it worked or not
+title: "Phone: <vendor> <model> (<codename>)"
+body:
+  - type: markdown
+    attributes:
+      value: Leave out serial numbers, IMEIs, phone numbers and other private data.
+  - type: input
+    id: model
+    attributes:
+      label: Vendor and model
+      placeholder: Xiaomi Redmi Note 9 Pro Max
+    validations:
+      required: true
+  - type: input
+    id: codename
+    attributes:
+      label: Codename
+      description: From `adb shell getprop ro.product.device` or `fastboot getvar product`, not the marketing name.
+      placeholder: excalibur
+    validations:
+      required: true
+  - type: input
+    id: chip
+    attributes:
+      label: Chip
+      placeholder: Qualcomm Snapdragon 720G (SM7125)
+  - type: input
+    id: system
+    attributes:
+      label: Linux system and version
+      placeholder: postmarketOS v26.06, Phosh
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Result
+      options:
+        - works
+        - works with gaps
+        - boots, but not usable
+        - doesn't boot
+        - no port exists
+    validations:
+      required: true
+  - type: textarea
+    id: hardware
+    attributes:
+      label: What works and what doesn't
+      description: Display, touch, Wi-Fi, modem (data, SMS, calls), audio, charging, suspend, cameras, GPS. Say what you didn't test.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How you installed it, and the fixes it needed
+  - type: checkboxes
+    id: next
+    attributes:
+      label: Next
+      options:
+        - label: I can open a pull request with a `phones/` folder for it

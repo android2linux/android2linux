@@ -1,0 +1,29 @@
+name: A guide fix
+description: A step that is wrong, missing or out of date
+title: "Guide: <guide>: <what>"
+body:
+  - type: input
+    id: guide
+    attributes:
+      label: Guide
+      placeholder: Safe flashing
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+      description: The step, the command, and what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: right
+    attributes:
+      label: What worked instead
+  - type: input
+    id: tested
+    attributes:
+      label: Phone, system and date
+      placeholder: curtana, postmarketOS v26.06, 2026-11-21
+    validations:
+      required: true

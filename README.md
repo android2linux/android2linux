@@ -108,11 +108,7 @@ A phone interface inspired by Metro, the design of Windows Phone: live tiles, an
 
 ## Contributing
 
-- **A phone** you got working, or found can't work yet: add a folder under [`phones/`](phones/README.md), named by codename.
-- **An app**: add a folder under [`apps/`](apps/README.md) with an `app.json`.
-- **When you talk to the projects** this builds on, follow their rules on AI: postmarketOS forbids AI-made contributions, so anything you post there is yours to write. See [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md).
-
-Leave out serial numbers, IMEIs, phone numbers and other private data.
+Phones, apps, guide fixes and scripts are welcome, including a phone that can't run Linux yet. A change starts with an [issue](https://github.com/android2linux/android2linux/issues/new/choose) and arrives as a pull request; [CONTRIBUTING.md](CONTRIBUTING.md) has the workflow, what to test and what to leave out. Contributions made with an AI assistant are welcome here; postmarketOS forbids them in its own spaces ([Communities and AI](skills/android2linux/references/guides/communities-and-ai.md)).
 
 ## License
 

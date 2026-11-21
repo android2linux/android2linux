@@ -1,0 +1,34 @@
+name: A script bug
+description: A script in scripts/ that fails or does the wrong thing
+title: "Script: <name>: <what>"
+body:
+  - type: markdown
+    attributes:
+      value: Replace serials, addresses and user names in the output with placeholders such as `<serial>`.
+  - type: input
+    id: script
+    attributes:
+      label: Script
+      placeholder: check-rom.py
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command you ran
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      render: shell
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+  - type: input
+    id: system
+    attributes:
+      label: PC and phone systems
+      placeholder: Ubuntu 24.04; postmarketOS v26.06
