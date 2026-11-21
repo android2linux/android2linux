@@ -1,47 +1,48 @@
 # android2linux
 
-**Free your phone from Google. Pair with an AI to do it.**
+Replace Android on your phone with Linux, working through it with an AI assistant.
 
-A phone running real Linux is yours: no account required, no tracking you didn't choose, software you can read and change. Projects like [postmarketOS](https://postmarketos.org) and [Ubuntu Touch](https://ubports.com) have made this possible for years. What stopped most people was everything around it: knowledge scattered across wikis, forums and kernel source, guides written for a slightly different phone, and the fear of bricking the device on step 4.
+Linux phone systems such as [postmarketOS](https://postmarketos.org) and [Ubuntu Touch](https://ubports.com) run on many phones, but getting one onto a specific phone means finding the right port, unlocking the bootloader, flashing safely and fixing whatever hardware doesn't work yet. The information is spread across wikis, forums and source code, and mistakes can brick the phone. An AI assistant can do that research for your exact phone, check each step before it runs, and explain what it does. This repository gives the assistant the method, the safety rules and what has already been learned, and gives you the same material to read.
 
-That's the part an AI assistant changes. It reads the wiki, the package recipes and the source code for your exact phone. It checks what a random GitHub repo actually contains before you flash it. It runs the read-only checks first, explains every command before it runs, keeps each change reversible, and stays with you through the debugging that no guide covers. You still make every decision. You just don't have to be a kernel developer anymore.
+## Contents
 
-This repo packages what was learned doing exactly that, so you and your assistant can do it too:
+- [What's in this repository](#whats-in-this-repository)
+- [Phones](#phones)
+- [Getting started](#getting-started)
+- [Safety](#safety)
+- [Guides](#guides)
+- [Apps](#apps)
+- [Contributing](#contributing)
+- [License](#license)
 
-- **An agent skill** ([`skills/android2linux`](skills/android2linux/SKILL.md)) that turns a coding assistant into a careful pairing partner for this work: the method, the safety rules, and when to read what.
-- **Guides** for humans and assistants alike: the method step by step, and a list of gotchas that each cost real time once.
-- **Phones** ([`phones/`](phones/)): one folder per phone, with what works, how to install it and the fixes that phone needs.
-- **Scripts** for the common steps: phone facts, ROM verification, patching, modem diagnostics, screenshots, a Chromium kiosk.
-- **Apps** ([`apps/`](apps/)): web apps reworked for phone screens, installed with one command.
-- **[An awesome list](AWESOME.md)** of the operating systems, tools, apps and communities that make all this possible.
+## What's in this repository
 
-## What happened, in short
+| | |
+|---|---|
+| [`skills/android2linux/`](skills/android2linux/SKILL.md) | An agent skill: the method, the safety rules, and which guide to read when |
+| [Guides](skills/android2linux/references/guides/) | The method step by step, for any phone, and a list of [gotchas](skills/android2linux/references/gotchas.md) |
+| [`phones/`](phones/) | One folder per phone: what runs on it, how to install it, what works, the fixes it needs |
+| [`apps/`](apps/) | Web apps reworked for phone screens, with one installer |
+| [`scripts/`](skills/android2linux/scripts/README.md) | Tools for the common steps: phone facts, ROM checks, patching, modem diagnostics, screenshots, a kiosk |
+| [`AWESOME.md`](AWESOME.md) | The systems, tools, apps and communities this builds on |
 
-Two phones, two days in November 2026, a Linux PC, and an AI assistant.
+## Phones
 
-**Poco X8 Pro Max** (`dash`, MediaTek Dimensity 9500s). A promising GitHub repo turned out to be for the *Poco X8 Pro* (`klee`), a different phone with a different chip. No Linux port exists for this one yet, and the chip has no rescue mode if a flash goes wrong. The honest answer was "not today", plus what works instead. → [phone folder](phones/xiaomi-dash/)
+| Phone | Chip | Linux | Status |
+|---|---|---|---|
+| [Xiaomi Redmi Note 9 Pro Max](phones/xiaomi-excalibur/) (`excalibur`) | Snapdragon 720G | Ubuntu Touch 24.04; postmarketOS v26.06 | Both run. postmarketOS needs two fixes for this variant; no charger driver and no cameras yet |
+| [Xiaomi Poco X8 Pro Max](phones/xiaomi-dash/) (`dash`) | Dimensity 9500s | none yet | No Linux port; Linux runs only inside Android |
 
-**Redmi Note 9 Pro Max** (`excalibur`, Snapdragon 720G), a spare phone:
-
-1. Bootloader unlocked from Linux, with no Windows tool; downgraded safely to Android 10 after checking the anti-rollback index; Ubuntu Touch 24.04 installed. Switching to the 24.04-2.x series fixed the status bar running under the camera hole.
-2. Then **postmarketOS**, on a variant it officially doesn't support. Its bootloader didn't recognise the phone; a 14-byte patch to U-Boot's device-tree match fixed that, and it booted: display, touch, GPU, Wi-Fi.
-3. The SIM didn't work. The same SIM, firmware and hardware worked on Ubuntu Touch, so the problem had to be on the Linux side. The trail led to a small file server the modem uses at startup; the version shipped had a bug the upstream project had already fixed. With the upstream version: 4G at 28 Mbit/s and SMS; calls connect (audio untested).
-4. **WhatsApp, reworked for the phone.** WhatsApp Web is a cramped desktop layout on a phone. A small Chromium extension, built by measuring the page's structure (never its content) and changing CSS live while the phone's owner watched, turned it into a one-pane app with a back button and a bottom bar. → [apps/whatsapp](apps/whatsapp/)
+The full list, generated from each phone's `phone.json`, is in [`phones/`](phones/).
 
 | Ubuntu Touch 24.04 | | postmarketOS v26.06 |
 |:---:|:---:|:---:|
 | <img src="docs/images/ubuntu-touch-home.png" width="220" alt="Ubuntu Touch home screen with the launcher"> | <img src="docs/images/ubuntu-touch-apps.png" width="220" alt="Ubuntu Touch app drawer"> | <img src="docs/images/postmarketos-chromium-keyboard.png" width="220" alt="Chromium in Phosh with the on-screen keyboard, 4G in the status bar"> |
 | Home screen | App drawer | Chromium in Phosh, on 4G |
 
-<img src="docs/images/ubuntu-touch-status-bar-fix.png" width="540" alt="Status bar before and after: on 24.04-1.x the clock runs into the rounded corner; on 24.04-2.x it sits clear and the icons part around the camera hole">
+## Getting started
 
-*Top: Ubuntu Touch 24.04-1.x draws the status bar into the rounded corner. Bottom: 24.04-2.x reads the phone's cutouts, so the clock sits clear of the corner and the icons part around the camera hole.*
-
-Not everything works: there's no charger driver for this chip in mainline Linux (it charges slowly on its default settings), and the cameras need drivers that don't exist yet. Its folder says exactly what works, what doesn't, and why. → [phone folder](phones/xiaomi-excalibur/)
-
-## Use it
-
-**With an AI assistant** (the intended way). Install the skill so your assistant loads it when you talk about Linux on phones. Link it from a clone rather than copying it: the skill reads the `phones/` and `apps/` folders next to it, and `git pull` keeps everything current. For Claude Code:
+**With an AI assistant.** Install the skill so the assistant uses it when you talk about Linux on phones. Link it from a clone rather than copying it: the skill reads the `phones/` and `apps/` folders next to it, and `git pull` keeps everything current. For Claude Code:
 
 ```sh
 git clone https://github.com/alantriesagain/android2linux ~/android2linux
@@ -49,43 +50,42 @@ mkdir -p ~/.claude/skills
 ln -s ~/android2linux/skills/android2linux ~/.claude/skills/android2linux
 ```
 
-Then start a session in a working folder and say what you want, for example *"I have a Redmi Note 9 Pro, can it run Linux?"* or *"my SIM doesn't work on postmarketOS"*. Other assistants that support agent skills can load the same folder; any assistant can read the guides directly.
+Then start a session in a working folder and describe what you want, for example "I have a Redmi Note 9 Pro, can it run Linux?" or "my SIM doesn't work on postmarketOS". Other assistants that support agent skills can load the same folder.
 
-**Without one**, start with [assess-your-phone.md](skills/android2linux/references/guides/assess-your-phone.md) and follow the links.
+**Without one.** Start with [Assess your phone](skills/android2linux/references/guides/assess-your-phone.md) and follow the links.
 
 ## Safety
 
-Flashing a phone can destroy it and its data. The skill and the guides follow a few rules that are never broken: never relock a bootloader on modified software, never flash an image for another codename, never go below the phone's anti-rollback index, back up before anything that wipes. Your assistant should explain each step before running it; if it doesn't, ask. You are responsible for your device.
+Flashing a phone can destroy it and its data. The skill and the guides keep to a few rules: never relock a bootloader on modified software, never flash an image for another codename, never go below the phone's anti-rollback index, and back up before anything that wipes. The assistant explains each step before running it; if it doesn't, ask. You are responsible for your device.
 
-## The guides
+## Guides
 
-| | |
+| Guide | Covers |
 |---|---|
-| [Assess your phone](skills/android2linux/references/guides/assess-your-phone.md) | Can it run Linux? Codename first, then ports, then the unlock policy |
+| [Assess your phone](skills/android2linux/references/guides/assess-your-phone.md) | Whether it can run Linux: codename, ports, unlock policy |
 | [Unlock a Xiaomi from Linux](skills/android2linux/references/guides/xiaomi-unlock-from-linux.md) | Mi Unlock binding, MiUnlockTool with browser login |
 | [Safe flashing](skills/android2linux/references/guides/safe-flashing.md) | Read-only checks, verifying ROMs, anti-rollback, never relock |
 | [Ubuntu Touch](skills/android2linux/references/guides/ubuntu-touch.md) | Installer, access, the read-only system, notch fix |
 | [postmarketOS on an unsupported variant](skills/android2linux/references/guides/postmarketos-unsupported-variant.md) | pmbootstrap from git, the U-Boot match patch, flashing |
-| [Qualcomm modem debugging](skills/android2linux/references/guides/qualcomm-modem-debugging.md) | From `DeviceNotReady` to 4G: the method and the fix |
+| [Qualcomm modem debugging](skills/android2linux/references/guides/qualcomm-modem-debugging.md) | From `DeviceNotReady` to a working modem |
 | [Charging without a driver](skills/android2linux/references/guides/charging-without-a-driver.md) | What the hardware defaults give, and how to measure |
 | [Chromium kiosk, and Chromium in Phosh](skills/android2linux/references/guides/chromium-kiosk.md) | Full-screen web UIs with cage; web apps that fit the screen |
 | [Working from your PC](skills/android2linux/references/guides/working-from-your-pc.md) | SSH, adb, screenshots, sudo, pitfalls |
-| [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md) | Each project's rules, and how to report bugs well |
-| [Gotchas](skills/android2linux/references/gotchas.md) | Every pitfall, one line each |
+| [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md) | Each project's rules, and how to report bugs |
+| [Gotchas](skills/android2linux/references/gotchas.md) | Pitfalls, one line each |
 
 ## Apps
 
-Many services have no Linux app, only a web app made for a desktop screen. [`apps/`](apps/) turns them into phone apps, one folder each, with one installer for all; [WhatsApp](apps/whatsapp/) is the first. The [tools](apps/dev/) to build the next one are there too.
+Many services have no Linux app, only a web app made for a desktop screen. Each folder in [`apps/`](apps/) turns one into a phone app: the site in a Chromium window that fits the screen, an extension that adapts the layout where needed, and an icon in the app grid. [WhatsApp](apps/whatsapp/) is the first; [`apps/dev/`](apps/dev/) has the tools to build more.
 
-## Working with the projects
+## Contributing
 
-The Linux phone projects are built by volunteers, and each sets its own rules about AI; postmarketOS forbids AI-made contributions, so anything you post there is yours to write. Use AI as much as you like on your own phone, and follow each community's rules when you talk to them. → [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md)
+- **A phone** you got working, or found can't work yet: add a folder under [`phones/`](phones/README.md), named by codename.
+- **An app**: add a folder under [`apps/`](apps/README.md) with an `app.json`.
+- **When you talk to the projects** this builds on, follow their rules on AI: postmarketOS forbids AI-made contributions, so anything you post there is yours to write. See [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md).
 
-## Add your phone or an app
-
-- **A phone** you got working, or learned can't work yet: add a folder under [`phones/`](phones/README.md), named by codename, as described there.
-- **An app**: add a folder under [`apps/`](apps/README.md) with an `app.json`, as described there.
+Leave out serial numbers, IMEIs, phone numbers and other private data.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The projects this builds on (postmarketOS, Ubuntu Touch, U-Boot, the Linux kernel, tqftpserv and others) have their own licenses. This repo contains no firmware: vendor firmware is proprietary and stays on your own machine.
+MIT, see [LICENSE](LICENSE). The projects this builds on (postmarketOS, Ubuntu Touch, U-Boot, the Linux kernel, tqftpserv and others) have their own licenses. This repository contains no firmware: vendor firmware is proprietary and stays on your own machine.

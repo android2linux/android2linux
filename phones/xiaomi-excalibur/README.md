@@ -27,6 +27,10 @@ Each arrow is a separate install, with a wipe between them:
 3. **Android 10 downgrade** — the official MIUI 12 fastboot ROM `excalibur_in_global_images_V12.0.4.0.QJXINXM` (Android 10), about 3.1 GB. Ubuntu Touch on this phone runs over Android 10's hardware drivers, and the installer does not downgrade for you.
 4. **Ubuntu Touch 24.04** — installed with the UBports Installer 0.11.2, channel 24.04 stable, Wipe Userdata + Partitioning + Bootstrap on. Display, touch, GPU, Wi-Fi and a mobile data connection were seen working; UBports' device page also lists calls and the camera as working (not tested here). See [`../guides/ubuntu-touch.md`](../../skills/android2linux/references/guides/ubuntu-touch.md).
 5. **Ubuntu Touch 24.04-2.x** — switched channel to get cutout support for the rounded corners and camera hole; the 24.04-1.x series ran the status bar under them.
+
+   <img src="../../docs/images/ubuntu-touch-status-bar-fix.png" width="540" alt="Status bar before and after: on 24.04-1.x the clock runs into the rounded corner; on 24.04-2.x it sits clear and the icons part around the camera hole">
+
+   *Top: 24.04-1.x draws the status bar into the rounded corner. Bottom: 24.04-2.x reads the phone's cutouts.*
 6. **postmarketOS v26.06** (2026-11-20) — a near-mainline kernel with open GPU drivers, on an **unsupported variant** of a supported family. Excalibur has no device tree of its own; the Note 9 Pro (`joyeuse`) tree is the closest. Making it boot took a 14-byte patch to U-Boot (not upstream) and a locally built device package. See [`../guides/postmarketos-unsupported-variant.md`](../../skills/android2linux/references/guides/postmarketos-unsupported-variant.md).
 
 Ubuntu Touch draws through Android's GPU drivers, so only its built-in browser (Qt WebEngine) gets acceleration. postmarketOS uses freedreno on mainline, so any current Chromium on any Wayland compositor gets the GPU — that was the reason for the move.
