@@ -1,54 +1,59 @@
 # Xiaomi Poco X8 Pro Max (`dash`)
 
-This is the dossier for a phone that has **no Linux path today**: a Poco X8 Pro Max, codename `dash`, on a MediaTek Dimensity 9500s. It explains why there is nothing to install yet, why a GitHub repo that looks like a port is not one, what the unlock situation is, and what you can do instead if the goal is simply Linux on this hardware. It is the counter-example to [`xiaomi-redmi-note-9-pro-max.md`](../xiaomi-excalibur/): same brand, very different outcome because of the chip and the codename. For the general method, see [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md).
+No Linux system runs on this phone yet. Linux tools run inside Android, through Android 16's Linux Terminal or Termux.
 
-## Device facts
+## Contents
+
+- [Facts](#facts)
+- [Why there is no Linux port yet](#why-there-is-no-linux-port-yet)
+- [Not the Poco X8 Pro](#not-the-poco-x8-pro)
+- [Unlocking](#unlocking)
+- [Linux inside Android](#linux-inside-android)
+- [What exists, and what to watch](#what-exists-and-what-to-watch)
+- [Last checked](#last-checked)
+
+## Facts
 
 | | |
 |---|---|
-| Phone | Poco X8 Pro Max, global model `2602BPC18G` |
+| Phone | Poco X8 Pro Max, global model `2602BPC18G`; sold in China as the Redmi Turbo 5 Max |
 | Codename | `dash` |
 | SoC | MediaTek Dimensity 9500s (`MT6991`) |
-| OS as shipped | HyperOS 3 (Android 16) |
-| Bootloader | locked |
+| Ships with | HyperOS 3 (Android 16) |
+| Partitions | A/B with virtual A/B and dynamic partitions |
 
-## Why there is no Linux path today
+## Why there is no Linux port yet
 
-- **No port exists for `dash`.** Neither postmarketOS/Nura, Ubuntu Touch, Droidian nor Sailfish list it. A mainline kernel with device tree support has to be written for the SoC and board first, and for a brand-new MediaTek flagship that has not happened.
-- **MediaTek makes it harder than Qualcomm.** The practical distinction that matters when you assess a phone (in [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md)) is Qualcomm mainline versus MediaTek. Mainline support for recent Qualcomm SoCs is far ahead; recent MediaTek chips, especially new flagships, usually have none.
-- **There is no BROM rescue on this chip.** On many MediaTek phones a bad flash can be recovered through BROM mode. This one has no such recovery, so a failed experiment is not something you can undo with a tool — it is a dead phone. That alone argues for not experimenting until a real port exists.
+- **No system lists it.** postmarketOS, Ubuntu Touch, Droidian and Sailfish OS have no port for `dash`. A port needs a mainline kernel with a device tree for the board, or a Halium adaptation over its Android drivers, and neither exists.
+- **Recent MediaTek flagships have little mainline support.** Mainline Linux has basic support for parts of the MT6991 (clocks, timers, PCIe, I2C), far from a working phone.
+- **A failed flash may not be recoverable.** No public BROM exploit exists for this chip generation, and Xiaomi disables the preloader's USB port; recovery needs Xiaomi's authorised service tools. Don't experiment on this phone until a real port exists.
 
-## The `klee` confusion
+## Not the Poco X8 Pro
 
-There is a GitHub repository, `emir34-34/ubuntu-touch-poco-x8-pro`, whose name invites exactly the wrong conclusion. It is a **real** Ubuntu Touch port — but for the **Poco X8 Pro** (codename `klee`, Dimensity 8500), a **different phone** with a different chip. The installer refuses any codename other than `klee`.
+The GitHub repository `emir34-34/ubuntu-touch-poco-x8-pro` is a real Ubuntu Touch port, but for the **Poco X8 Pro**: codename `klee`, Dimensity 8500, a different phone. Its installer refuses any codename other than `klee`. Check the **codename**, not the marketing name, before trusting a port ([Assess your phone](../../skills/android2linux/references/guides/assess-your-phone.md)).
 
-"X8 Pro" and "X8 Pro Max" are unrelated phones inside. This is the single clearest example, in this whole project, of why you check the **codename** and not the marketing name: the repo is genuine, the instructions are genuine, and they still do not apply to this phone. See how to read a random port critically in [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md).
+## Unlocking
 
-## Unlock situation
+- HyperOS phones are unlocked through the **Xiaomi Community app**: apply under *Unlock bootloader* with a global account at least about 30 days old. The daily quota resets at 00:00 Beijing time (UTC+8) and runs out within seconds.
+- After approval, bind the phone in *Developer options → Mi Unlock status* and wait (Xiaomi's figure is 15 days, up to 60), then unlock with Mi Unlock or [MiUnlockTool](https://github.com/MiForge/MiUnlockTool) from Linux ([guide](../../skills/android2linux/references/guides/xiaomi-unlock-from-linux.md)).
+- Xiaomi reportedly allows **one unlock per account per year**.
+- Chinese units (Redmi Turbo 5 Max) can't be unlocked officially with a global account.
 
-Even before a port exists, unlocking this phone is harder than the Redmi was:
+With no port to install, there is no reason to unlock this phone for Linux yet.
 
-- The route is the **Xiaomi Community app**, not the simple Mi Unlock status flow. The quota resets at 00:00 Beijing time, which is 13:00 in Brasília.
-- It typically means **a wait of a week or more** before the unlock is granted.
-- Xiaomi reportedly allows **one unlock per account per year**. If the same Mi account was already used to unlock another phone (for example the Redmi in this project), that quota may already be spent.
+## Linux inside Android
 
-So this is not a phone to plan an install around yet. Treat the unlock as a separate, slow prerequisite that may fail on quota, and check it before buying hardware to experiment on.
+- **Android 16's Linux Terminal**: a Debian virtual machine managed by Android (on this chip through MediaTek's GenieZone hypervisor). Turn it on in *Developer options → Linux development environment*. No unlock needed.
+- **[Termux](https://termux.dev)**: a terminal with its own package manager, beside Android. Lighter than the virtual machine.
 
-## What works instead
+Both leave Android in place: they give you Linux tools, not a Linux phone.
 
-If the goal is Linux on this hardware rather than a full replacement OS, the phone already runs it:
+## What exists, and what to watch
 
-- **Android 16's built-in Linux Terminal** — a Debian virtual machine managed by Android. You get a real Linux userland without touching the bootloader.
-- **Termux** — a terminal environment with a package manager, running beside Android.
+- **Kernel source** for `dash` was published in July 2026 (`dash-w-oss` in Xiaomi's `MiCode/Xiaomi_Kernel_OpenSource`). It is the starting point for a port, not a port.
+- **Unofficial OrangeFox and TWRP recoveries** and an untested crDroid build exist on XDA; none is a Linux system.
+- Watch for a postmarketOS device package or a Halium port for `dash` or the MT6991, and the [XDA forum for this phone](https://xdaforums.com/f/xiaomi-poco-x8-pro-max-and-redmi-turbo-5-max.13006/), where community work shows up first.
 
-Both keep Android in place, so they are not "freeing the phone" in the sense the rest of this repo means, but they are legitimate ways to get Linux tools today without risking a locked, unrecoverable device. Which one fits depends on whether you want a full Debian VM (Linux Terminal) or a lighter terminal environment (Termux).
+## Last checked
 
-## What to watch
-
-- Kernel source for `dash` was released in **July 2026**. Source is a prerequisite for a port, not a port, but it is the first thing that has to exist.
-- Watch whether a mainline device tree and a postmarketOS/Nura device package appear for `dash` (or for `MT6991` more broadly). Until then there is nothing to flash.
-- Keep an eye on the XDA forum section for this phone: <https://xdaforums.com/f/xiaomi-poco-x8-pro-max-and-redmi-turbo-5-max.13006/>. Community work usually shows up there before it reaches a distro.
-
-## Last verified
-
-Checked 2026-11-21. The "no port" and "no BROM rescue" findings are from the project notes at that date; re-check the distro wikis before acting, since ports appear over time.
+2026-11-21. Ports appear over time: check the systems' device lists before acting.
