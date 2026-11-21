@@ -1,0 +1,18 @@
+{
+  "id": "whatsapp",
+  "name": "WhatsApp",
+  "description": "WhatsApp Web with a phone layout: one pane at a time, a back button, a bottom bar.",
+  "url": "https://web.whatsapp.com/",
+  "extension": "extension",
+  "categories": ["Network", "InstantMessaging"],
+  "status": "works",
+  "tested": [
+    {
+      "date": "2026-11-21",
+      "device": "Xiaomi Redmi Note 9 Pro Max (excalibur)",
+      "os": "postmarketOS v26.06, Phosh",
+      "browser": "Chromium 156"
+    }
+  ],
+  "notes": "Layout only: never reads or sends messages. WhatsApp's terms forbid modified clients; no bans reported for layout-only extensions, but the risk isn't zero."
+}

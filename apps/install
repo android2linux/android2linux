@@ -1,0 +1,148 @@
+#!/bin/sh
+# Installs a web app from this folder as a phone app on a Linux phone (postmarketOS/Phosh or similar):
+# the site in a plain Chromium app window, with the app's phone-layout extension if it has one, in a
+# Chromium profile of its own, with a launcher and an icon in the app grid.
+#
+# Usage (on the phone, as the phone user):
+#   sh apps/install <app> [--copy-profile] [--hide-web-app]
+#   sh apps/install <app> --uninstall
+#   <app>           a folder under apps/ with an app.json (see apps/README.md)
+#   --copy-profile  start from a copy of ~/.config/chromium, so an existing login to the site carries
+#                   over. Chromium must be closed. Without it you log in once in the new app.
+#   --hide-web-app  hide the icon of a web app for the same site installed earlier from Chromium.
+#
+# Why a profile of its own: Chromium runs one process per profile, and a second launch hands over to
+# the running one, ignoring its options such as --load-extension. With its own profile the
+# extension always loads, whether or not the browser is open.
+# Why --app=URL and not an installed web app (--app-id): installed web-app windows keep a toolbar row
+# and can't be narrower than 500 CSS px; a plain app window has neither limit, so it fits a
+# 360-px-wide phone screen natively.
+#
+# Creates: ~/.local/share/android2linux/apps/<id>/ (profile, extension), ~/.local/bin/a2l-<id>,
+#          ~/.local/share/applications/android2linux-<id>.desktop
+set -eu
+
+usage() { sed -n '2,24p' "$0"; }
+[ $# -ge 1 ] || { usage; exit 2; }
+case "$1" in -h|--help) usage; exit 0 ;; esac
+
+apps_dir=$(cd "$(dirname "$0")" && pwd)
+app_dir="$apps_dir/$1"
+shift
+[ -f "$app_dir/app.json" ] || { echo "no app.json in $app_dir" >&2; exit 1; }
+
+copy_profile=no
+hide_web_app=no
+uninstall=no
+for arg in "$@"; do
+  case "$arg" in
+    --copy-profile) copy_profile=yes ;;
+    --hide-web-app) hide_web_app=yes ;;
+    --uninstall) uninstall=yes ;;
+    *) echo "unknown option: $arg" >&2; exit 2 ;;
+  esac
+done
+
+# Read the fields we need from app.json.
+field() { python3 -c 'import json,sys; v=json.load(open(sys.argv[1])).get(sys.argv[2], ""); print(";".join(v) if isinstance(v, list) else v)' "$app_dir/app.json" "$1"; }
+id=$(field id)
+name=$(field name)
+url=$(field url)
+description=$(field description)
+extension=$(field extension)
+categories=$(field categories)
+[ -n "$id" ] && [ -n "$name" ] && [ -n "$url" ] || { echo "app.json needs id, name and url" >&2; exit 1; }
+
+base="$HOME/.local/share/android2linux/apps/$id"
+launcher="$HOME/.local/bin/a2l-$id"
+desktop="$HOME/.local/share/applications/android2linux-$id.desktop"
+icon_file="$HOME/.local/share/icons/hicolor/512x512/apps/android2linux-$id.png"
+
+if [ "$uninstall" = yes ]; then
+  rm -rf "$base" "$launcher" "$desktop" "$icon_file"
+  echo "uninstalled $name"
+  exit 0
+fi
+
+chromium=/usr/lib/chromium/chromium-launcher.sh
+[ -x "$chromium" ] || chromium=$(command -v chromium || command -v chromium-browser || true)
+[ -n "$chromium" ] || { echo "Chromium not found" >&2; exit 1; }
+
+mkdir -p "$base/profile" "$HOME/.local/bin" "$HOME/.local/share/applications"
+
+# The extension, if the app has one.
+ext_option=
+if [ -n "$extension" ]; then
+  rm -rf "$base/extension"
+  cp -r "$app_dir/$extension" "$base/extension"
+  ext_option="--load-extension=$base/extension"
+fi
+
+# The profile.
+if [ "$copy_profile" = yes ]; then
+  if pgrep -f "[c]hromium/chromium" >/dev/null; then
+    echo "Close Chromium first (it must not be running while its profile is copied)." >&2
+    exit 1
+  fi
+  src="$HOME/.config/chromium"
+  [ -d "$src/Default" ] || { echo "no profile at $src/Default" >&2; exit 1; }
+  echo "copying $src (without caches)..."
+  cp "$src/Local State" "$base/profile/" 2>/dev/null || true
+  mkdir -p "$base/profile/Default"
+  for item in "$src/Default/"*; do
+    case "$(basename "$item")" in GPUCache|DawnWebGPUCache|DawnGraphiteCache|"Code Cache"|Cache) continue ;; esac
+    cp -a "$item" "$base/profile/Default/"
+  done
+  rm -f "$base/profile/Singleton"*
+fi
+touch "$base/profile/First Run"
+# No Chromium-drawn window frame: Phosh then shows the page edge to edge.
+python3 - "$base/profile/Default/Preferences" <<'EOF'
+import json, os, sys
+p = sys.argv[1]
+d = json.load(open(p)) if os.path.exists(p) else {}
+d.setdefault("browser", {})["custom_chrome_frame"] = False
+os.makedirs(os.path.dirname(p), exist_ok=True)
+json.dump(d, open(p, "w"))
+EOF
+
+# The launcher.
+cat > "$launcher" <<EOF
+#!/bin/sh
+# Starts $name as a phone app (installed by android2linux apps/install).
+exec "$chromium" --user-data-dir="$base/profile" --app=$url $ext_option \\
+  --ozone-platform=wayland --no-first-run "\$@"
+EOF
+chmod +x "$launcher"
+
+# The icon: the app's own icon.png, else the icon of a web app for the same site installed earlier.
+icon=web-browser
+if [ -f "$app_dir/icon.png" ]; then
+  mkdir -p "$(dirname "$icon_file")"
+  cp "$app_dir/icon.png" "$icon_file"
+  icon="$icon_file"
+fi
+host=$(printf '%s' "$url" | sed -E 's#^[a-z]+://([^/]+).*#\1#')
+for f in "$HOME"/.local/share/applications/chrome-*-Default.desktop; do
+  [ -f "$f" ] || continue
+  if grep -q "^Name=$name" "$f" || grep -q "$host" "$f"; then
+    [ "$icon" = web-browser ] && icon=$(sed -n 's/^Icon=//p' "$f" | head -1)
+    if [ "$hide_web_app" = yes ] && ! grep -q '^NoDisplay=true' "$f"; then
+      echo 'NoDisplay=true' >> "$f"
+      echo "hid $(basename "$f")"
+    fi
+  fi
+done
+
+cat > "$desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$name
+Comment=$description
+Exec=$launcher
+Icon=$icon
+Categories=$categories;
+StartupNotify=true
+EOF
+
+echo "installed $name: open it from the app grid, or run $launcher"

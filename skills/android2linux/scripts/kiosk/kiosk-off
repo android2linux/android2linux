@@ -1,0 +1,45 @@
+#!/bin/sh
+# kiosk-off - stop the phone kiosk and bring the normal desktop back.
+#
+# What it does:
+#   Removes the greetd drop-in zz-kiosk.conf, reloads systemd and restarts
+#   greetd, which returns to the normal greeter/desktop. The installed kiosk
+#   files stay in place so kiosk-on can switch back quickly.
+#
+# Arguments:
+#   <ssh-host>     SSH host alias or user@host
+#   -h, --help     show this help
+#
+# Changes: yes. It deletes /etc/systemd/system/greetd.service.d/zz-kiosk.conf and
+# restarts greetd. It prompts for the phone password, or reads PHONE_PIN and
+# pipes it to `sudo -S`.
+#
+# Example:
+#   ./kiosk-off pmos
+set -eu
+
+usage() {
+  sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+host=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    -*) echo "kiosk-off: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)
+      if [ -n "$host" ]; then echo "kiosk-off: only one ssh host is expected" >&2; exit 2; fi
+      host=$1; shift ;;
+  esac
+done
+
+[ -n "$host" ] || { usage >&2; exit 2; }
+
+echo "Removing the kiosk drop-in on $host and restarting greetd."
+
+cmd='rm -f /etc/systemd/system/greetd.service.d/zz-kiosk.conf && systemctl daemon-reload && systemctl restart greetd && echo "kiosk off, desktop back"'
+if [ -n "${PHONE_PIN:-}" ]; then
+  printf '%s\n' "$PHONE_PIN" | ssh "$host" "sudo -S -p '' sh -c '$cmd'"
+else
+  ssh -t "$host" "sudo sh -c '$cmd'"
+fi

@@ -1,0 +1,87 @@
+#!/bin/sh
+# kiosk-on - install and start the phone kiosk (cage + Chromium) over SSH.
+#
+# What it does:
+#   Copies phone-kiosk, kiosk.toml and zz-kiosk.conf to the phone, installs the
+#   launcher in /usr/local/bin and the greetd config in /etc/greetd, writes the
+#   URL to /etc/greetd/kiosk-url, and installs the greetd drop-in that starts
+#   the kiosk. Restarting greetd ends the current desktop session.
+#
+# Arguments:
+#   -u, --user <name>   phone user the kiosk runs as (default: user)
+#   <ssh-host>          SSH host alias or user@host
+#   [url]               page to show (default: https://example.com/)
+#   -h, --help          show this help
+#
+# Changes: yes. It installs files under /usr/local/bin and /etc, then restarts
+# greetd. It prompts for the phone password, or reads PHONE_PIN and pipes it to
+# `sudo -S` (only if you choose to set it).
+#
+# Example:
+#   ./kiosk-on -u user pmos https://example.com/
+set -eu
+
+usage() {
+  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+phone_user=user
+host=""
+url=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -u|--user)
+      [ $# -ge 2 ] || { echo "kiosk-on: $1 needs a name" >&2; exit 2; }
+      phone_user=$2; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    -*)
+      echo "kiosk-on: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)
+      if [ -z "$host" ]; then host=$1
+      elif [ -z "$url" ]; then url=$1
+      else echo "kiosk-on: unexpected argument $1" >&2; exit 2
+      fi
+      shift ;;
+  esac
+done
+
+[ -n "$host" ] || { usage >&2; exit 2; }
+[ -n "$url" ] || url="https://example.com/"
+
+if ! printf '%s' "$phone_user" | grep -Eq '^[a-z_][a-z0-9_-]*$'; then
+  echo "kiosk-on: invalid user name: $phone_user" >&2
+  exit 2
+fi
+
+dir=$(cd "$(dirname "$0")" && pwd)
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+sed "s/^user = .*/user = \"$phone_user\"/" "$dir/kiosk.toml" > "$tmp/kiosk.toml"
+printf '%s\n' "$url" > "$tmp/kiosk-url"
+
+cat > "$tmp/root.sh" <<'ROOT'
+set -e
+install -m 755 /tmp/kiosk/phone-kiosk /usr/local/bin/phone-kiosk
+install -D -m 644 /tmp/kiosk/kiosk.toml /etc/greetd/kiosk.toml
+install -D -m 644 /tmp/kiosk/kiosk-url /etc/greetd/kiosk-url
+install -D -m 644 /tmp/kiosk/zz-kiosk.conf /etc/systemd/system/greetd.service.d/zz-kiosk.conf
+systemctl daemon-reload
+systemctl restart greetd
+echo "kiosk on"
+ROOT
+
+echo "Installing the kiosk on $host as user '$phone_user' for $url"
+echo "This will restart greetd, ending the current desktop session."
+
+ssh "$host" 'mkdir -p /tmp/kiosk'
+scp -q "$dir/phone-kiosk" "$dir/zz-kiosk.conf" "$tmp/kiosk.toml" "$tmp/kiosk-url" \
+  "$host:/tmp/kiosk/"
+scp -q "$tmp/root.sh" "$host:/tmp/kiosk/root.sh"
+
+if [ -n "${PHONE_PIN:-}" ]; then
+  printf '%s\n' "$PHONE_PIN" | ssh "$host" 'sudo -S -p "" sh /tmp/kiosk/root.sh'
+else
+  ssh -t "$host" 'sudo sh /tmp/kiosk/root.sh'
+fi

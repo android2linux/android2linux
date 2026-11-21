@@ -1,0 +1,106 @@
+#!/bin/sh
+# modem-diag - read-only modem diagnostics for a postmarketOS/Linux phone over SSH.
+#
+# What it does:
+#   Prints the ModemManager summary (state, power, access tech, signal, operator,
+#   SIM slots) with IMEI/IMSI/ICCID/own-number lines filtered out; the QMI
+#   operating mode and SIM card state; the tqftpserv package version and the
+#   binary its service runs; the size and contents of its readwrite folder; and
+#   how many RRQ/WRQ lines tqftpserv logged this boot.
+#
+# Arguments:
+#   <ssh-host>     SSH host alias or user@host (e.g. pmos)
+#   -h, --help     show this help
+#
+# Changes: read-only. It uses `ssh -t ... sudo` only to read root-only files;
+# the user types the phone password at the prompt.
+#
+# Example:
+#   ./modem-diag pmos
+set -eu
+
+usage() {
+  sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+host=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    -*) echo "modem-diag: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)
+      if [ -n "$host" ]; then
+        echo "modem-diag: only one ssh host is expected" >&2
+        exit 2
+      fi
+      host=$1
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$host" ]; then
+  usage >&2
+  exit 2
+fi
+
+# The remote script runs as root via sudo; it only reads. It travels base64
+# encoded in the command, so stdin stays free for sudo's password prompt.
+remote_script=$(cat <<'REMOTE'
+set -u
+
+echo "== ModemManager summary"
+m=$(mmcli -L 2>/dev/null | grep -o 'Modem/[0-9]*' | head -1 | cut -d/ -f2 || true)
+if [ -n "${m:-}" ]; then
+  mmcli -m "$m" 2>/dev/null | grep -iE 'state|power state|access tech|signal|operator|SIM|slot' \
+    | grep -viE 'imei|imsi|iccid|own number' || true
+else
+  echo "(no modem found by mmcli)"
+fi
+
+echo
+echo "== QMI operating mode"
+qmicli -d qrtr://0 -p --dms-get-operating-mode 2>&1 || true
+
+echo
+echo "== SIM card status"
+qmicli -d qrtr://0 -p --uim-get-card-status 2>&1 \
+  | grep -E 'Card state|Application state|PIN1 state|Slot \[|Personalization' || true
+
+echo
+echo "== tqftpserv package and binary"
+if command -v apk >/dev/null 2>&1; then
+  apk info -v tqftpserv 2>/dev/null || echo "(apk: tqftpserv not installed)"
+elif command -v dpkg >/dev/null 2>&1; then
+  dpkg -s tqftpserv 2>/dev/null | grep -E '^(Package|Version):' || echo "(dpkg: tqftpserv not installed)"
+fi
+echo "-- service ExecStart:"
+systemctl cat tqftpserv 2>/dev/null | grep -E '^ExecStart' || echo "(no tqftpserv unit)"
+
+echo
+echo "== tqftpserv readwrite folder"
+found=0
+for d in /var/lib/tqftpserv /tmp/tqftpserv; do
+  if [ -d "$d" ]; then
+    found=1
+    echo "-- $d"
+    du -sh "$d" 2>/dev/null || true
+    ls -la "$d" 2>/dev/null || true
+  fi
+done
+[ "$found" = 1 ] || echo "(no readwrite folder found)"
+
+echo
+echo "== tqftpserv RRQ/WRQ lines this boot"
+if command -v journalctl >/dev/null 2>&1; then
+  n=$(journalctl -u tqftpserv -b --no-pager 2>/dev/null | grep -cE 'RRQ|WRQ' || true)
+  [ -n "${n:-}" ] || n=0
+  echo "$n lines mentioning RRQ or WRQ"
+else
+  echo "(journalctl not available)"
+fi
+REMOTE
+)
+
+encoded=$(printf '%s' "$remote_script" | base64 | tr -d '\n')
+ssh -t "$host" "echo $encoded | base64 -d | sudo sh"

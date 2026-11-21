@@ -1,0 +1,8 @@
+# greetd config for the phone kiosk: no login screen, the kiosk runs straight
+# as the phone user. kiosk-on replaces "user" with the user you pass it.
+[terminal]
+vt = 7
+
+[default_session]
+command = "/usr/local/bin/phone-kiosk"
+user = "user"

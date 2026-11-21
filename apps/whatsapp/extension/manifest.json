@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "WhatsApp Web on a phone",
+  "description": "Makes WhatsApp Web usable on a phone-sized screen: one pane at a time, with a back button. Layout only; never reads or sends messages.",
+  "version": "0.3.0",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "css": [
+        "adapter.css"
+      ],
+      "js": [
+        "adapter.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

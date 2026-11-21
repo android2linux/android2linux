@@ -1,0 +1,26 @@
+# pmbootstrap-small-boot.patch
+#
+# Why: on the Xiaomi miatoll family (Redmi Note 9 Pro and siblings) the boot
+# partition is placed in "cache", which is only 384 MiB. pmbootstrap otherwise
+# refuses any boot_size below its default of 512 MiB. This patch lets a
+# checkout run with a smaller boot_size when PMB_ALLOW_SMALL_BOOT=1 is set,
+# so `PMB_ALLOW_SMALL_BOOT=1 pmbootstrap install` works with boot_size = 256.
+#
+# Apply with:  git apply pmbootstrap-small-boot.patch
+#
+diff --git a/pmb/install/_install.py b/pmb/install/_install.py
+index 188b990..f4f1e37 100644
+--- a/pmb/install/_install.py
++++ b/pmb/install/_install.py
+@@ -668,6 +668,11 @@ def sanity_check_boot_size() -> None:
+     config = get_context().config
+     if int(config.boot_size) >= int(default):
+         return
++    # Local patch: xiaomi-miatoll puts the boot partition into "cache", which is only 384 MiB,
++    # so this checkout runs with boot_size 256 on purpose.
++    if os.environ.get("PMB_ALLOW_SMALL_BOOT") == "1":
++        logging.warning(f"WARNING: boot_size {config.boot_size} MiB is below {default} (allowed by PMB_ALLOW_SMALL_BOOT)")
++        return
+     logging.error(
+         "ERROR: your pmbootstrap has a small/invalid boot_size of"
+         f" {config.boot_size} configured, probably because the config"

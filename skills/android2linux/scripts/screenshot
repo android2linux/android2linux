@@ -1,0 +1,170 @@
+#!/bin/sh
+# screenshot - take a screenshot of a Linux phone over SSH and copy it to the PC.
+#
+# What it does:
+#   By default it uses grim on a Phosh/wlroots compositor (XDG_RUNTIME_DIR and
+#   WAYLAND_DISPLAY auto-detected) and streams the PNG back over SSH.
+#   With --ubuntu-touch it injects Volume Up + Volume Down into the phone's
+#   evdev devices (found by their KEY capability bits in /proc/bus/input/devices,
+#   not by hard-coded event numbers), waits, and copies the newest file from
+#   ~/Pictures/Screenshots.
+#
+# Arguments:
+#   --ubuntu-touch     use the volume-key method (Lomiri/Ubuntu Touch)
+#   --allow-private    capture even while a private app is open (only when the
+#                      phone's owner asks for it at that moment)
+#   -o, --out <dir>    output directory (default: current directory)
+#   <ssh-host>         SSH host alias or user@host (e.g. pmos)
+#   [out-dir]          output directory as a positional argument
+#   -h, --help         show this help
+#
+# Privacy guard: it refuses to capture while an app matching $PRIVATE_APPS is
+# running (messengers, mail; extend it with a regex), because a window overview or
+# a notification can show its content. Close the app, or pass --allow-private.
+#
+# Changes: on Phosh this is read-only (grim writes to stdout). On Ubuntu Touch
+# it makes the phone save a screenshot file, which it then copies off.
+#
+# Example:
+#   ./screenshot pmos ~/Pictures
+#   ./screenshot --ubuntu-touch phone
+set -eu
+
+usage() {
+  sed -n '2,/^set -eu/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
+}
+
+ut=0
+allow_private=0
+outdir="."
+host=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --ubuntu-touch) ut=1; shift ;;
+    --allow-private) allow_private=1; shift ;;
+    -o|--out)
+      [ $# -ge 2 ] || { echo "screenshot: $1 needs a directory" >&2; exit 2; }
+      outdir=$2; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    -*)
+      echo "screenshot: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)
+      if [ -z "$host" ]; then host=$1; else outdir=$1; fi
+      shift ;;
+  esac
+done
+
+if [ -z "$host" ]; then
+  usage >&2
+  exit 2
+fi
+
+# Refuse while a private app is open (see the header).
+PRIVATE_APPS=${PRIVATE_APPS:-'web\.whatsapp\.com|whatsapp|signal-desktop|telegram-desktop|element-desktop|fractal|thunderbird|geary|(^|\/)evolution( |$)'}
+if [ "$allow_private" = 0 ]; then
+  open_private=$(ssh -n "$host" 'ps -eo args' | grep -i -E "$PRIVATE_APPS" | grep -v -E 'gapplication-service' | cut -c1-80 | head -3 || true)
+  if [ -n "$open_private" ]; then
+    echo "screenshot: a private app is open on the phone; close it first (or pass --allow-private if its owner asked):" >&2
+    printf '%s\n' "$open_private" | sed 's/^/  /' >&2
+    exit 3
+  fi
+fi
+
+mkdir -p "$outdir"
+outdir=$(cd "$outdir" && pwd)
+
+if [ "$ut" = 0 ]; then
+  uid=$(ssh -n "$host" 'id -u')
+  wd=$(ssh -n "$host" "ls /run/user/$uid/wayland-* 2>/dev/null | head -1 | sed 's#.*/##'" || true)
+  [ -n "$wd" ] || wd=wayland-0
+  name="screenshot-$(date +%Y%m%d-%H%M%S).png"
+  out="$outdir/$name"
+  ssh -n "$host" "XDG_RUNTIME_DIR=/run/user/$uid WAYLAND_DISPLAY='$wd' grim -" > "$out"
+  if [ ! -s "$out" ]; then
+    rm -f "$out"
+    echo "screenshot: grim produced no image (is the compositor running?)" >&2
+    exit 1
+  fi
+  echo "$out"
+  exit 0
+fi
+
+# Ubuntu Touch: find the volume-key evdev nodes and inject the key combination.
+remote=$(ssh -n "$host" '
+before=$(ls -t "$HOME/Pictures/Screenshots" 2>/dev/null | head -1 || true)
+python3 - <<PY
+import os, struct, sys, time
+
+def blocks():
+    text = open("/proc/bus/input/devices", encoding="latin-1").read()
+    cur = {}
+    for line in text.splitlines():
+        if not line.strip():
+            if cur:
+                yield cur
+            cur = {}
+        elif line.startswith("H: Handlers="):
+            cur["handlers"] = line.split("=", 1)[1]
+        elif line.startswith("B: KEY="):
+            cur["key"] = line.split("=", 1)[1].split()
+    if cur:
+        yield cur
+
+def has(bit, tokens):
+    if not tokens:
+        return False
+    word_bits = 64 if max(len(t) for t in tokens) > 8 else 32
+    words = [int(t, 16) for t in tokens]
+    idx = len(words) - 1 - bit // word_bits
+    if idx < 0 or idx >= len(words):
+        return False
+    return bool(words[idx] & (1 << (bit % word_bits)))
+
+def event_node(wanted):
+    for b in blocks():
+        if "handlers" not in b or "key" not in b:
+            continue
+        names = b["handlers"].split()
+        ev = next((n for n in names if n.startswith("event")), None)
+        if ev and has(wanted, b["key"]):
+            return "/dev/input/" + ev
+    return None
+
+KEY_VOLUMEUP, KEY_VOLUMEDOWN, EV_KEY, EV_SYN = 115, 114, 1, 0
+up = event_node(KEY_VOLUMEUP)
+down = event_node(KEY_VOLUMEDOWN)
+if not up or not down:
+    sys.stderr.write("could not find volume-key evdev devices\n")
+    sys.exit(1)
+
+fmt = "llHHi" if struct.calcsize("l") == 8 else "iiHHi"
+def ev(fd, typ, code, val):
+    os.write(fd, struct.pack(fmt, 0, 0, typ, code, val))
+    os.write(fd, struct.pack(fmt, 0, 0, EV_SYN, 0, 0))
+
+try:
+    fu = os.open(up, os.O_WRONLY)
+    fd = os.open(down, os.O_WRONLY)
+except PermissionError as exc:
+    sys.stderr.write("cannot open evdev node: %s\n" % exc)
+    sys.exit(1)
+
+ev(fu, EV_KEY, KEY_VOLUMEUP, 1)
+ev(fd, EV_KEY, KEY_VOLUMEDOWN, 1)
+time.sleep(0.4)
+ev(fd, EV_KEY, KEY_VOLUMEDOWN, 0)
+ev(fu, EV_KEY, KEY_VOLUMEUP, 0)
+PY
+sleep 3
+after=$(ls -t "$HOME/Pictures/Screenshots" 2>/dev/null | head -1 || true)
+if [ -n "$after" ] && [ "$after" != "$before" ]; then printf "%s\n" "$after"; fi
+')
+
+if [ -z "$remote" ]; then
+  echo "screenshot: no new screenshot appeared (is the phone unlocked?)" >&2
+  exit 1
+fi
+
+scp -q "$host:Pictures/Screenshots/$remote" "$outdir/$remote"
+echo "$outdir/$remote"

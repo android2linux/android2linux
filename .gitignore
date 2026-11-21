@@ -1,0 +1,14 @@
+# Firmware and images are proprietary or huge: they stay on your own machine.
+*.img
+*.mbn
+*.mdt
+*.b[0-9][0-9]
+*.bin
+*.tgz
+*.zip
+*.dtb
+# Generated hosts lists
+hosts.merged
+stevenblack.hosts
+# Logs from flashing or devices
+*.log

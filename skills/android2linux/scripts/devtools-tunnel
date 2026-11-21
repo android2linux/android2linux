@@ -1,0 +1,57 @@
+#!/bin/sh
+# devtools-tunnel - forward a phone's Chromium/WebEngine debugging port to the PC.
+#
+# What it does:
+#   Opens `ssh -f -N -L 127.0.0.1:<local>:127.0.0.1:<remote>` to the phone, then
+#   tells you to open http://127.0.0.1:<local>/json (or chrome://inspect).
+#
+#   postmarketOS ships `AllowTcpForwarding no` in sshd_config. To allow local
+#   forwards, create /etc/ssh/sshd_config.d/60-local-forwarding.conf with:
+#       AllowTcpForwarding local
+#   then `sudo systemctl restart sshd`. Restricting it to `local` still refuses
+#   remote forwards.
+#
+# Arguments:
+#   <ssh-host>             SSH host alias or user@host
+#   -l, --local <port>     local port (default 9222)
+#   -r, --remote <port>    phone debugging port (default 9222)
+#   -h, --help             show this help
+#
+# Changes: opens a local listener on the PC. Read-only on the phone.
+#
+# To close it, find the ssh PID (kill it by PID; do not use `pkill -f` with a
+# pattern that also appears in the same command line, or it kills its own shell).
+#
+# Example:
+#   ./devtools-tunnel -l 9223 pmos
+set -eu
+
+usage() {
+  sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+local_port=9222
+remote_port=9222
+host=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -l|--local)
+      [ $# -ge 2 ] || { echo "devtools-tunnel: $1 needs a port" >&2; exit 2; }
+      local_port=$2; shift 2 ;;
+    -r|--remote)
+      [ $# -ge 2 ] || { echo "devtools-tunnel: $1 needs a port" >&2; exit 2; }
+      remote_port=$2; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    -*) echo "devtools-tunnel: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)
+      if [ -n "$host" ]; then echo "devtools-tunnel: only one ssh host is expected" >&2; exit 2; fi
+      host=$1; shift ;;
+  esac
+done
+
+[ -n "$host" ] || { usage >&2; exit 2; }
+
+ssh -f -N -L "127.0.0.1:$local_port:127.0.0.1:$remote_port" "$host"
+echo "tunnel open: http://127.0.0.1:$local_port/json"
+echo "close it by killing the ssh PID (ps -o pid,args -C ssh)."

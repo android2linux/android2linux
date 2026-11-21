@@ -1,0 +1,115 @@
+#!/bin/sh
+# phone-info - print read-only identity facts from a phone in adb or fastboot mode.
+#
+# What it does:
+#   In adb mode it reads getprop values (model, device, product, build id,
+#   Android version, region, verified-boot state, locked state, slot suffix,
+#   dynamic partitions). In fastboot mode it reads getvar values (product,
+#   anti, unlocked, slot-count, current-slot). It detects the mode itself;
+#   force it with --adb or --fastboot.
+#
+# Arguments:
+#   -s <serial>   device serial (adb/fastboot -s). Optional with one device.
+#   --adb         force adb mode.
+#   --fastboot    force fastboot mode.
+#   -h, --help    show this help.
+#
+# Changes: read-only. It never reboots, flashes or writes anything.
+#
+# Example:
+#   phone-info -s ABC123
+#   phone-info --fastboot            # while the phone shows the bootloader
+set -eu
+
+serial=""
+mode=""
+
+usage() {
+  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -s) [ $# -ge 2 ] || { echo "phone-info: -s needs a serial" >&2; exit 2; }
+        serial=$2; shift 2 ;;
+    --adb) mode=adb; shift ;;
+    --fastboot) mode=fastboot; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "phone-info: unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+run5() {
+  if have timeout; then timeout 5 "$@"; else "$@"; fi
+}
+
+# Pick a mode unless the caller forced one.
+detect_mode() {
+  if [ -n "$mode" ]; then return; fi
+  if have adb; then
+    if [ -n "$serial" ]; then
+      if adb -s "$serial" get-state 2>/dev/null | grep -qx device; then mode=adb; return; fi
+    else
+      if adb devices 2>/dev/null | awk 'NR>1 && $2=="device" {found=1} END{exit !found}'; then mode=adb; return; fi
+    fi
+  fi
+  if have fastboot; then
+    if [ -n "$serial" ]; then
+      if run5 fastboot -s "$serial" getvar product >/dev/null 2>&1; then mode=fastboot; return; fi
+    else
+      if fastboot devices 2>/dev/null | awk 'NF {found=1} END{exit !found}'; then mode=fastboot; return; fi
+    fi
+  fi
+  echo "phone-info: no adb device and no fastboot device found" >&2
+  exit 1
+}
+
+adb_cmd() {
+  if [ -n "$serial" ]; then adb -s "$serial" "$@"; else adb "$@"; fi
+}
+
+fb_cmd() {
+  if [ -n "$serial" ]; then fastboot -s "$serial" "$@"; else fastboot "$@"; fi
+}
+
+getprop() {
+  adb_cmd shell getprop "$1" 2>/dev/null | tr -d '\r'
+}
+
+print_prop() {
+  v=$(getprop "$1")
+  [ -n "$v" ] || v="(not set)"
+  printf '%-26s %s\n' "$2" "$v"
+}
+
+fastboot_getvar() {
+  # fastboot writes getvar output to stderr on most versions.
+  fb_cmd getvar "$1" 2>&1 | tr -d '\r' | awk -v k="$1" '
+    $1 == k":" { sub(/^[^:]*:[ \t]*/, ""); print; found=1 }
+    END { if (!found) print "(not set)" }' | head -1
+}
+
+detect_mode
+
+if [ "$mode" = adb ]; then
+  echo "mode: adb"
+  print_prop ro.product.model          "model"
+  print_prop ro.product.device         "device"
+  print_prop ro.product.name           "product name"
+  print_prop ro.build.version.incremental "build incremental"
+  print_prop ro.build.version.release  "Android version"
+  print_prop ro.product.region         "region"
+  print_prop ro.boot.flash.locked      "flash locked (ro.boot.flash.locked)"
+  print_prop ro.boot.verifiedbootstate "verified boot state"
+  print_prop ro.boot.slot_suffix       "slot suffix"
+  print_prop ro.boot.dynamic_partitions "dynamic partitions"
+else
+  echo "mode: fastboot"
+  printf '%-26s %s\n' "product"      "$(fastboot_getvar product)"
+  printf '%-26s %s\n' "anti"         "$(fastboot_getvar anti)"
+  printf '%-26s %s\n' "unlocked"     "$(fastboot_getvar unlocked)"
+  printf '%-26s %s\n' "slot-count"   "$(fastboot_getvar slot-count)"
+  printf '%-26s %s\n' "current-slot" "$(fastboot_getvar current-slot)"
+fi
