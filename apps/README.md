@@ -7,6 +7,7 @@ Many services have no Linux app, only a web app designed for a desktop screen. E
 <!-- CATALOGUE:START -->
 | App | What it is | Status | Last tested on |
 |---|---|---|---|
+| [Lichess](lichess/) | Free, open-source chess: play people or the computer, puzzles, study. The site already fits a phone screen. | works | Xiaomi Redmi Note 9 Pro Max (excalibur), postmarketOS v26.06, Phosh (2026-11-21) |
 | [WhatsApp](whatsapp/) | WhatsApp Web with a phone layout: one pane at a time, a back button, a bottom bar. | works | Xiaomi Redmi Note 9 Pro Max (excalibur), postmarketOS v26.06, Phosh (2026-11-21) |
 <!-- CATALOGUE:END -->
 
@@ -26,7 +27,7 @@ sh apps/install whatsapp --copy-profile --hide-web-app
 apps/<id>/
   app.json        name, URL, description, categories, status, where it was tested
   extension/      a Chromium extension (Manifest V3) that adapts the layout, if the site needs one
-  icon.png        optional, 512×512
+  icon.png        optional, 512×512; or icon_url in app.json, fetched at install time
   README.md       what it does, how it works, its limits and risks, credit
 ```
 

@@ -50,6 +50,7 @@ name=$(field name)
 url=$(field url)
 description=$(field description)
 extension=$(field extension)
+icon_url=$(field icon_url)
 categories=$(field categories)
 [ -n "$id" ] && [ -n "$name" ] && [ -n "$url" ] || { echo "app.json needs id, name and url" >&2; exit 1; }
 
@@ -115,12 +116,17 @@ exec "$chromium" --user-data-dir="$base/profile" --app=$url $ext_option \\
 EOF
 chmod +x "$launcher"
 
-# The icon: the app's own icon.png, else the icon of a web app for the same site installed earlier.
+# The icon: the app's own icon.png, else its icon_url, else the icon of a web app for the same site installed earlier.
 icon=web-browser
 if [ -f "$app_dir/icon.png" ]; then
   mkdir -p "$(dirname "$icon_file")"
   cp "$app_dir/icon.png" "$icon_file"
   icon="$icon_file"
+elif [ -n "$icon_url" ]; then
+  # Fetched from the site at install time, as Chromium does for a web app; the repository doesn't carry it.
+  mkdir -p "$(dirname "$icon_file")"
+  if command -v curl >/dev/null; then fetch="curl -fsSL -o"; else fetch="wget -q -O"; fi
+  if $fetch "$icon_file" "$icon_url"; then icon="$icon_file"; else rm -f "$icon_file"; echo "could not fetch the icon; using a generic one" >&2; fi
 fi
 host=$(printf '%s' "$url" | sed -E 's#^[a-z]+://([^/]+).*#\1#')
 for f in "$HOME"/.local/share/applications/chrome-*-Default.desktop; do

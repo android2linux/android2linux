@@ -13,6 +13,12 @@ It won't run everything an Android phone does: banking apps and other apps that 
 
 Getting Linux onto a particular phone means finding the right port, unlocking the bootloader, flashing safely and fixing whatever hardware doesn't work yet. The information is spread across wikis, forums and source code, and mistakes can brick the phone. An AI assistant can do that research for your exact phone, check each step before it runs, and explain what it does. This repository gives the assistant the method, the safety rules and what has already been learned, and gives you the same material to read.
 
+| Terminal | Search and switching apps | Chess |
+|:---:|:---:|:---:|
+| <img src="docs/images/clip-terminal.gif" width="250" alt="Opening Console from the app grid and running fastfetch with the on-screen keyboard"> | <img src="docs/images/clip-search.gif" width="250" alt="Swiping up to the overview, searching for the calculator and multiplying 1080 by 2400"> | <img src="docs/images/clip-chess.gif" width="250" alt="Opening the Lichess app and playing an opening on the analysis board, with Stockfish running in the page"> |
+
+postmarketOS v26.06 with Phosh on a Redmi Note 9 Pro Max. The dots show the taps and swipes.
+
 ## Contents
 
 - [What's in this repository](#whats-in-this-repository)
@@ -86,7 +92,7 @@ Flashing a phone can destroy it and its data. The skill and the guides keep to a
 
 ## Apps
 
-Many services have no Linux app, only a web app made for a desktop screen. Each folder in [`apps/`](apps/) turns one into a phone app: the site in a Chromium window that fits the screen, an extension that adapts the layout where needed, and an icon in the app grid. [WhatsApp](apps/whatsapp/) is the first; [`apps/dev/`](apps/dev/) has the tools to build more.
+Many services have no Linux app, only a web app made for a desktop screen. Each folder in [`apps/`](apps/) turns one into a phone app: the site in a Chromium window that fits the screen, an extension that adapts the layout where needed, and an icon in the app grid. So far: [WhatsApp](apps/whatsapp/), with an extension for a one-pane phone layout, and [Lichess](apps/lichess/), which fits as it is. [`apps/dev/`](apps/dev/) has the tools to build more.
 
 ## Make it yours
 

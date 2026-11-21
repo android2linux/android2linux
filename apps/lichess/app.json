@@ -1,0 +1,18 @@
+{
+  "id": "lichess",
+  "name": "Lichess",
+  "description": "Free, open-source chess: play people or the computer, puzzles, study. The site already fits a phone screen.",
+  "url": "https://lichess.org/",
+  "icon_url": "https://lichess1.org/assets/logo/lichess-favicon-512.png",
+  "categories": ["Game", "BoardGame"],
+  "status": "works",
+  "tested": [
+    {
+      "date": "2026-11-21",
+      "device": "Xiaomi Redmi Note 9 Pro Max (excalibur)",
+      "os": "postmarketOS v26.06, Phosh",
+      "browser": "Chromium 156"
+    }
+  ],
+  "notes": "No extension: the site's own mobile layout works as is."
+}
