@@ -1,6 +1,6 @@
-# Awesome: leaving Android for Linux
+# Awesome: Linux on your phone
 
-A curated list of what you need to put Linux on a phone and live with it, from the people and projects that made it possible. Everything here was used or checked while writing android2linux (November 2026). Suggestions welcome: open an issue or a pull request.
+A curated list of what you need to turn a phone into a Linux pocket computer and live with it, from the people and projects that make it possible. Everything here was used or checked while writing android2linux (November 2026). Suggestions welcome: open an issue or a pull request.
 
 ## Operating systems
 

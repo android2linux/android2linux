@@ -23,6 +23,7 @@ Where things are, relative to this file (the skill is installed as a link into a
 - **Verify claims.** Repos, forum posts, wikis and your own memory are often wrong for this exact phone. Confirm against primary sources (the project's package recipes, the kernel source, the firmware itself) and say what you verified and what you didn't.
 - **Work on the phone through SSH, and start long-running things as user services.** GUI apps, loggers and anything that must outlive your SSH session go through `systemd-run --user` (see [working-from-your-pc.md](references/guides/working-from-your-pc.md)).
 - **Keep a notebook.** Record the device's facts, every change and every finding in a notes file in the user's project folder (an `AGENTS.md` works well), so the next session starts where this one ended. Never write passwords into it. When the phone works, offer to turn the notes into a `phones/<vendor>-<codename>/` folder for the repository.
+- **Set expectations early.** A Linux phone is a pocket computer the user controls, not a full Android replacement: banking apps and apps that require Android or Google's integrity checks won't run (Waydroid covers some Android apps, not those). Suggest keeping an Android phone at home for them.
 - **Stay honest about results.** "It booted" is not "it works". Test each piece (display, touch, modem, audio, charging, suspend) and report what works, what doesn't and what wasn't tested.
 
 ## The path
