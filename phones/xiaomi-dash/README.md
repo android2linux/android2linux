@@ -1,6 +1,6 @@
 # Xiaomi Poco X8 Pro Max (`dash`)
 
-This is the dossier for a phone that has **no Linux path today**: a Poco X8 Pro Max, codename `dash`, on a MediaTek Dimensity 9500s. It explains why there is nothing to install yet, why a GitHub repo that looks like a port is not one, what the unlock situation is, and what you can do instead if the goal is simply Linux on this hardware. It is the counter-example to [`xiaomi-redmi-note-9-pro-max.md`](xiaomi-redmi-note-9-pro-max.md): same brand, very different outcome because of the chip and the codename. For the general method, see [`../guides/assess-your-phone.md`](../guides/assess-your-phone.md).
+This is the dossier for a phone that has **no Linux path today**: a Poco X8 Pro Max, codename `dash`, on a MediaTek Dimensity 9500s. It explains why there is nothing to install yet, why a GitHub repo that looks like a port is not one, what the unlock situation is, and what you can do instead if the goal is simply Linux on this hardware. It is the counter-example to [`xiaomi-redmi-note-9-pro-max.md`](../xiaomi-excalibur/): same brand, very different outcome because of the chip and the codename. For the general method, see [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md).
 
 ## Device facts
 
@@ -15,14 +15,14 @@ This is the dossier for a phone that has **no Linux path today**: a Poco X8 Pro 
 ## Why there is no Linux path today
 
 - **No port exists for `dash`.** Neither postmarketOS/Nura, Ubuntu Touch, Droidian nor Sailfish list it. A mainline kernel with device tree support has to be written for the SoC and board first, and for a brand-new MediaTek flagship that has not happened.
-- **MediaTek makes it harder than Qualcomm.** The practical distinction that matters when you assess a phone (in [`../guides/assess-your-phone.md`](../guides/assess-your-phone.md)) is Qualcomm mainline versus MediaTek. Mainline support for recent Qualcomm SoCs is far ahead; recent MediaTek chips, especially new flagships, usually have none.
+- **MediaTek makes it harder than Qualcomm.** The practical distinction that matters when you assess a phone (in [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md)) is Qualcomm mainline versus MediaTek. Mainline support for recent Qualcomm SoCs is far ahead; recent MediaTek chips, especially new flagships, usually have none.
 - **There is no BROM rescue on this chip.** On many MediaTek phones a bad flash can be recovered through BROM mode. This one has no such recovery, so a failed experiment is not something you can undo with a tool — it is a dead phone. That alone argues for not experimenting until a real port exists.
 
 ## The `klee` confusion
 
 There is a GitHub repository, `emir34-34/ubuntu-touch-poco-x8-pro`, whose name invites exactly the wrong conclusion. It is a **real** Ubuntu Touch port — but for the **Poco X8 Pro** (codename `klee`, Dimensity 8500), a **different phone** with a different chip. The installer refuses any codename other than `klee`.
 
-"X8 Pro" and "X8 Pro Max" are unrelated phones inside. This is the single clearest example, in this whole project, of why you check the **codename** and not the marketing name: the repo is genuine, the instructions are genuine, and they still do not apply to this phone. See how to read a random port critically in [`../guides/assess-your-phone.md`](../guides/assess-your-phone.md).
+"X8 Pro" and "X8 Pro Max" are unrelated phones inside. This is the single clearest example, in this whole project, of why you check the **codename** and not the marketing name: the repo is genuine, the instructions are genuine, and they still do not apply to this phone. See how to read a random port critically in [`../guides/assess-your-phone.md`](../../skills/android2linux/references/guides/assess-your-phone.md).
 
 ## Unlock situation
 

@@ -23,8 +23,8 @@ Do not trust a shop listing, a review, or the name on the box. Trust `ro.product
 
 The single biggest predictor of whether a port exists is the chip, and within chips the vendor:
 
-- **Qualcomm** recent SoCs, especially the `sm7125`/`sm8250`-era ones, have real mainline work behind them. The `miatoll` family (Redmi Note 9S / Note 9 Pro / Note 9 Pro Max / Poco M2 Pro) has Ubuntu Touch, postmarketOS, Droidian and Sailfish ports. This is why the Redmi in [`../devices/xiaomi-redmi-note-9-pro-max.md`](../devices/xiaomi-redmi-note-9-pro-max.md) was feasible.
-- **MediaTek** recent chips, and new flagships in particular, usually have **no** mainline support. The Poco X8 Pro Max (`dash`, Dimensity 9500s) has no port and — importantly — no BROM rescue if a flash goes wrong. See [`../devices/xiaomi-poco-x8-pro-max.md`](../devices/xiaomi-poco-x8-pro-max.md).
+- **Qualcomm** recent SoCs, especially the `sm7125`/`sm8250`-era ones, have real mainline work behind them. The `miatoll` family (Redmi Note 9S / Note 9 Pro / Note 9 Pro Max / Poco M2 Pro) has Ubuntu Touch, postmarketOS, Droidian and Sailfish ports. This is why the Redmi in [`../devices/xiaomi-redmi-note-9-pro-max.md`](../../../../phones/xiaomi-excalibur/) was feasible.
+- **MediaTek** recent chips, and new flagships in particular, usually have **no** mainline support. The Poco X8 Pro Max (`dash`, Dimensity 9500s) has no port and — importantly — no BROM rescue if a flash goes wrong. See [`../devices/xiaomi-poco-x8-pro-max.md`](../../../../phones/xiaomi-dash/).
 
 A port can exist for one variant of a family and not another. The Redmi Note 9 Pro Max (`excalibur`) has no device tree of its own even though the family is supported; it runs on the Note 9 Pro's tree with a patch. So "the family is supported" is a starting point, not a guarantee — see [`postmarketos-unsupported-variant.md`](postmarketos-unsupported-variant.md).
 
@@ -65,7 +65,7 @@ Repos named after a phone are not proof of a port for that phone. Before you bel
 4. Look at **recency** and **activity**: last commit, open issues, whether anyone reports it booting.
 5. Read what does **not** work. A port that boots with no modem, no camera and no charging is still a port, but you should know that before you start.
 
-The `klee` example is the whole lesson in one repo: `emir34-34/ubuntu-touch-poco-x8-pro` is a real port, with real instructions, for a different phone. See [`../devices/xiaomi-poco-x8-pro-max.md`](../devices/xiaomi-poco-x8-pro-max.md).
+The `klee` example is the whole lesson in one repo: `emir34-34/ubuntu-touch-poco-x8-pro` is a real port, with real instructions, for a different phone. See [`../devices/xiaomi-poco-x8-pro-max.md`](../../../../phones/xiaomi-dash/).
 
 ## A short checklist
 

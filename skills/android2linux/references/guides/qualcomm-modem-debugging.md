@@ -1,6 +1,6 @@
 # Debugging a Qualcomm modem on Linux
 
-This guide is the investigation method that took a modem from "present but refusing to come online" to registered, with data, SMS and calls, on a mainline Qualcomm phone. It is written as a sequence of narrowing steps: confirm the basics, learn the operating-mode states, rule out ModemManager, compare against an OS where the modem works, read the helper-service logs, apply the fix, and know what was ruled out along the way. The actual cause was a userspace helper (`tqftpserv`), not the modem firmware. Use it with [`working-from-your-pc.md`](working-from-your-pc.md) for running commands on the phone and [`../devices/xiaomi-redmi-note-9-pro-max.md`](../devices/xiaomi-redmi-note-9-pro-max.md) for the device context.
+This guide is the investigation method that took a modem from "present but refusing to come online" to registered, with data, SMS and calls, on a mainline Qualcomm phone. It is written as a sequence of narrowing steps: confirm the basics, learn the operating-mode states, rule out ModemManager, compare against an OS where the modem works, read the helper-service logs, apply the fix, and know what was ruled out along the way. The actual cause was a userspace helper (`tqftpserv`), not the modem firmware. Use it with [`working-from-your-pc.md`](working-from-your-pc.md) for running commands on the phone and [`../devices/xiaomi-redmi-note-9-pro-max.md`](../../../../phones/xiaomi-excalibur/) for the device context.
 
 ## 1. Confirm the basics
 

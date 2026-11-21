@@ -123,7 +123,7 @@ Phosh at scale 3 gives apps a screen 360 CSS px wide, and Chromium refuses to ma
 
 Full-screen (`Browser.setWindowBounds` → `fullscreen`) also removes the toolbar, but it hides Phosh's status bar and its swipe gestures, and with the 500-px minimum the window is shrunk to fill only the top three quarters of the screen. Not worth it.
 
-To run a web app with an extension every time, give it **its own profile** (`--user-data-dir=…`): Chromium runs one process per profile, and a second launch hands over to the running one, ignoring its command-line options such as `--load-extension`. Copying the existing profile (with Chromium closed) keeps the site's login. Alpine's Chromium (unbranded) honours `--load-extension`; Google Chrome ignores it since version 137. Content scripts run inside app windows. See [apps/whatsapp](../../../../apps/whatsapp/) for a complete example, and [`apps/install`](../../../../apps/install) for the installer that sets this up.
+To run a web app with an extension every time, give it **its own profile** (`--user-data-dir=…`): Chromium runs one process per profile, and a second launch hands over to the running one, ignoring its command-line options such as `--load-extension`. Copying the existing profile (with Chromium closed) keeps the site's login. Alpine's Chromium (unbranded) honours `--load-extension`; Google Chrome ignores it since version 137. Content scripts run inside app windows. See [apps/whatsapp](../../../../apps/whatsapp) for a complete example, and [`apps/install`](../../../../apps/install) for the installer that sets this up.
 
 Phosh's on-screen keyboard works in Chromium. Firefox ESR 153 (with `mobile-config-firefox`) has no PWA install on Linux; GNOME Web (`epiphany`) does.
 

@@ -1,4 +1,4 @@
-# Awesome: leaving Android and iOS for Linux
+# Awesome: leaving Android for Linux
 
 A curated list of what you need to put Linux on a phone and live with it, from the people and projects that made it possible. Everything here was used or checked while writing android2linux (November 2026). Suggestions welcome: open an issue or a pull request.
 
@@ -39,7 +39,7 @@ A curated list of what you need to put Linux on a phone and live with it, from t
 
 - [LinuxPhoneApps.org](https://linuxphoneapps.org): the catalogue of apps made for Linux phones. Start here.
 - [android2linux apps](apps/): web apps reworked for phone screens, with one installer.
-- WhatsApp on a Linux phone: [Karere](https://github.com/tobagin/karere) ([Flathub](https://flathub.org/apps/io.github.tobagin.karere)), [ZapZap](https://github.com/rafatosta/zapzap) and [Whatsie](https://github.com/keshavbhatt/whatsie) are full clients; [whatsapp-web-ios](https://github.com/Etelis/whatsapp-web-ios) has the two-page layout technique our adapter borrows.
+- WhatsApp on a Linux phone: [Karere](https://github.com/tobagin/karere) ([Flathub](https://flathub.org/apps/io.github.tobagin.karere)), [ZapZap](https://github.com/rafatosta/zapzap) and [Whatsie](https://github.com/keshavbhatt/whatsie) are full clients; [whatsapp-web-ios](https://github.com/Etelis/whatsapp-web-ios) has the two-page layout technique the android2linux WhatsApp app borrows.
 - [Waydroid](https://waydro.id): runs Android apps in a container on Linux, for the ones you can't replace yet.
 - [StevenBlack/hosts](https://github.com/StevenBlack/hosts): a maintained hosts-file blocklist for system-wide ad and tracker blocking.
 

@@ -1,6 +1,6 @@
 # Charging a phone with no charger driver
 
-This guide is about a phone whose charger chip has **no mainline driver**, and what you can still rely on. It explains why the PM6150 "SMB5" charger does not work as expected under a mainline kernel, what the hardware's power-on defaults actually give you (a PC port is roughly break-even, a wall charger works with the screen off), how to measure charging honestly with the battery gauge, how suspend behaves, and what a real fix would take. It is the honest answer to "does it charge?" for the device in [`../devices/xiaomi-redmi-note-9-pro-max.md`](../devices/xiaomi-redmi-note-9-pro-max.md).
+This guide is about a phone whose charger chip has **no mainline driver**, and what you can still rely on. It explains why the PM6150 "SMB5" charger does not work as expected under a mainline kernel, what the hardware's power-on defaults actually give you (a PC port is roughly break-even, a wall charger works with the screen off), how to measure charging honestly with the battery gauge, how suspend behaves, and what a real fix would take. It is the honest answer to "does it charge?" for the device in [`../devices/xiaomi-redmi-note-9-pro-max.md`](../../../../phones/xiaomi-excalibur/).
 
 ## The missing driver
 

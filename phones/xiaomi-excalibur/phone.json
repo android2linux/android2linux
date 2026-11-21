@@ -1,0 +1,24 @@
+{
+  "id": "xiaomi-excalibur",
+  "vendor": "Xiaomi",
+  "model": "Redmi Note 9 Pro Max",
+  "codename": "excalibur",
+  "family": "miatoll",
+  "soc": "Qualcomm Snapdragon 720G (SM7125)",
+  "systems": [
+    {
+      "name": "Ubuntu Touch",
+      "version": "24.04-2.2",
+      "status": "works",
+      "checked": "2026-11-20",
+      "notes": "Official port (miatoll). Needs the stock Android 10 firmware underneath."
+    },
+    {
+      "name": "postmarketOS",
+      "version": "v26.06, Phosh",
+      "status": "works with gaps",
+      "checked": "2026-11-21",
+      "notes": "Unsupported variant: needs a U-Boot match patch and upstream tqftpserv. No charger driver (slow charging), no cameras, call audio untested."
+    }
+  ]
+}

@@ -7,7 +7,7 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 - **Product names lie.** "X8 Pro" and "X8 Pro Max" are different phones — check the codename with `fastboot getvar product`, not the marketing name. [`assess-your-phone.md`](guides/assess-your-phone.md)
 - **A real-looking GitHub port may be for another codename.** Read the codename and SoC in the repo, not its name (the `klee` example). [`assess-your-phone.md`](guides/assess-your-phone.md)
 - **A-only phones can't dual boot.** One system slot means Linux replaces Android. Check `slot-count` first.
-- **MediaTek may have no BROM rescue.** A bad flash can be final; don't experiment without a recovery path. [`devices/xiaomi-poco-x8-pro-max.md`](devices/xiaomi-poco-x8-pro-max.md)
+- **MediaTek may have no BROM rescue.** A bad flash can be final; don't experiment without a recovery path. [`devices/xiaomi-poco-x8-pro-max.md`](../../../phones/xiaomi-dash/)
 - **"Couldn't verify, sign in to your account again"** in Mi Unlock status — sign out, restart, sign back in, with mobile data on. [`guides/xiaomi-unlock-from-linux.md`](guides/xiaomi-unlock-from-linux.md)
 - **The unlock may have no waiting period and wipes immediately.** Back up before you press Enter.
 - **One unlock per account per year (reported).** Check the quota before planning a second unlock.
@@ -66,7 +66,7 @@ A flat list of every pitfall recorded in this project, one line each, with the f
 - **Don't chase the `qrtr0` MTU warning or `50-dns-filter.sh` failure.** They are harmless.
 - **The speaker is quiet by design under Linux.** No speaker protection — don't raise the amp.
 - **GNOME's "hum" test alert is too soft to judge the speaker.** Test with Firefox instead.
-- **One camera sensor failing blocks them all.** `ov16a1q` failing stops `qcom-camss` registering; there is no usable camera. [`devices/xiaomi-redmi-note-9-pro-max.md`](devices/xiaomi-redmi-note-9-pro-max.md)
+- **One camera sensor failing blocks them all.** `ov16a1q` failing stops `qcom-camss` registering; there is no usable camera. [`devices/xiaomi-redmi-note-9-pro-max.md`](../../../phones/xiaomi-excalibur/)
 - **There is no mainline charger driver (SMB5).** Charge from a wall charger with the screen off; a PC port is near break-even. [`guides/charging-without-a-driver.md`](guides/charging-without-a-driver.md)
 - **The battery gauge is unreliable.** Trust capacity and voltage over time; use `current_now` only for its sign (positive = drawn, negative = charging).
 - **Call audio needs `q6voiced`, which isn't installed.** Calls connect but audio is unverified.

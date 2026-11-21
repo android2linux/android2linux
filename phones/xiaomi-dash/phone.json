@@ -1,0 +1,17 @@
+{
+  "id": "xiaomi-dash",
+  "vendor": "Xiaomi",
+  "model": "Poco X8 Pro Max",
+  "codename": "dash",
+  "family": "Redmi Turbo 5 Max",
+  "soc": "MediaTek Dimensity 9500s (MT6991)",
+  "systems": [
+    {
+      "name": "none",
+      "version": "",
+      "status": "no Linux port yet",
+      "checked": "2026-11-20",
+      "notes": "Linux runs only inside Android for now (Android 16's Linux Terminal, Termux)."
+    }
+  ]
+}
