@@ -2,7 +2,7 @@
 
 WhatsApp has no Linux app, and WhatsApp Web is built for a desktop screen: a 748-px-wide two-pane layout with a rail of buttons on the left. On a phone it's cramped and cut off. This folder turns it into a phone app: one pane at a time, a back button in the header, and a bottom bar like the WhatsApp phone app.
 
-It was built the android2linux way: an AI assistant measured the page's structure on the phone (element ids, roles and sizes, never message text), changed the CSS live while the owner watched and said what looked wrong, then folded each change into the extension.
+It was built with the tools in [`../dev/`](../dev/): a probe that maps the page's structure without reading its content, and live CSS changes checked on the phone.
 
 ## What it does
 
@@ -26,10 +26,7 @@ sh apps/install whatsapp --copy-profile --hide-web-app
 
 It creates `~/.local/share/android2linux/apps/whatsapp/` (a Chromium profile of its own and the extension), the launcher `~/.local/bin/a2l-whatsapp`, and a **WhatsApp** entry in the app grid. [`apps/install`](../install) explains each choice; `sh apps/install whatsapp --uninstall` removes it.
 
-Two settings outside the script matter on Phosh:
-
-- `gsettings set sm.puri.phoc scale-to-fit true`: lets Phosh shrink windows that are wider than the screen. Not needed for this app window (it fits), but other Chromium windows can't be narrower than 500 px.
-- Chromium's own window frame is turned off in the copied profile (`browser.custom_chrome_frame = false`), so Phosh shows the page edge to edge.
+The installer also turns off Chromium's own window frame in the app's profile (`browser.custom_chrome_frame = false`), so Phosh shows the page edge to edge.
 
 Any Chromium-based browser can also load the extension unpacked (`chrome://extensions` → Developer mode → Load unpacked, or `--load-extension=<this folder>/extension`; Google-branded Chrome ignores that flag since version 137, Chromium doesn't).
 
@@ -47,4 +44,4 @@ WhatsApp's terms of service forbid modifying its services and using unofficial c
 
 ## When WhatsApp changes its page
 
-It will. Signs: the layout goes back to the desktop look (the extension switched itself off), or something sits in the wrong place. Map the page with [`../dev/structure-probe.js`](../dev/structure-probe.js) through Chromium DevTools to see which anchor moved, try the fix live with [`../dev/live-css.mjs`](../dev/live-css.mjs), then fold it into `extension/` and reinstall (`sh apps/install whatsapp`). Keep the rule: ids, roles and `data-testid` only.
+WhatsApp changes its page from time to time. Signs: the layout goes back to the desktop look (the extension switched itself off), or something sits in the wrong place. Map the page with [`../dev/structure-probe.js`](../dev/structure-probe.js) through Chromium DevTools to see which anchor moved, try the fix live with [`../dev/live-css.mjs`](../dev/live-css.mjs), then fold it into `extension/` and reinstall (`sh apps/install whatsapp`). Keep the rule: ids, roles and `data-testid` only.

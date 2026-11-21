@@ -50,7 +50,7 @@ After adding or changing an app, regenerate the table above with `python3 apps/c
 
 ## Build a new one
 
-The method is in [dev/](dev/): run the site on the phone with DevTools, map its layout with the structure probe (it never reads content), and change CSS live while you look at the phone. The rules that kept the WhatsApp adapter robust:
+The method is in [dev/](dev/): run the site on the phone with DevTools, map its layout with the structure probe (it never reads content), and change CSS live while you look at the phone. Rules for an adapter:
 
 - Select by ids, roles and `data-testid` attributes, never by generated class names.
 - If an anchor is missing, switch the whole adapter off: the stock site is better than a broken one.
