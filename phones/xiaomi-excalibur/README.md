@@ -109,14 +109,17 @@ The Pro Max's cameras ([camera guide](../../skills/android2linux/references/guid
 | Depth, 2 MP | GalaxyCore GC02M1 | none |
 | Front, 32 MP | OmniVision OV32A1Q (not joyeuse's OV16A1Q) | none |
 
-**The macro works** with two changes, both in [`camera/`](camera/):
+**The macro works** with three changes, all in [`camera/`](camera/):
 
 - [`sm7125-xiaomi-excalibur.dts`](camera/sm7125-xiaomi-excalibur.dts): joyeuse's tree with the front sensor and its CAMSS endpoint disabled, the macro's clock at 24 MHz and a second 2.8 V analog rail (TLMM GPIO 43), as Xiaomi's own excalibur kernel has them.
 - [`camss-csiphy-fix.patch`](camera/camss-csiphy-fix.patch): the CSIPHY lane table and PHY-enable writes for this SoC, from [asidko/qcom-camss-mainline](https://github.com/asidko/qcom-camss-mainline).
+- [`s5k5e9-probe-retry.patch`](camera/s5k5e9-probe-retry.patch): a retry in the sensor driver. On about a third of boots the first read gets no answer, and the CCI controller stays in that state until it suspends and resumes (its autosuspend delay is 1 s); the driver now power-cycles the sensor, waits 2 s and tries again, four tries in all. Eight boots in a row found the camera (four of them on the third try). The device tree also gives the sensor the camera block's power domain (`TITAN_TOP_GDSC`), without which a second try failed with `Failed to enable xvclk` (EBUSY).
 
 Build both on the phone, against the kernel package's own source (tag `sm7125-6.14.7` for `linux-postmarketos-qcom-sm7125` 6.14.7-r0) and its config, and boot the tree from a second boot entry, so the original stays one menu choice away. The steps are in the [camera guide](../../skills/android2linux/references/guides/mainline-camera.md#build-on-the-phone). Then `dmesg` shows `s5k5e9 13-002d: Detected s5k5e9 sensor`, `cam -l` (libcamera 0.7.1) lists it as "Internal back camera", and `cam -c1 --capture=8 --stream role=still --file=frame#.ppm` writes 2584 × 1944 frames at 19 to 38 fps. The image is real and in focus but pale: libcamera has no tuning file for this sensor yet.
 
-All four changes went in together, so which of them the macro needs isn't known yet; removing the front sensor (so `qcom-camss` can register) is the likely one.
+The first changes went in together, so which of them the macro needs isn't separated yet; removing the front sensor (so `qcom-camss` can register) is the likely one. Giving the rails a 5 ms start-up delay made no difference and isn't in the tree.
+
+**In apps**, through PipeWire: WirePlumber lists it as "Built-in Back Camera" (libcamera) and the desktop portal reports a camera. Chromium reaches it with `--enable-features=WebRtcPipeWireCamera` once the session runs `graphical-session.target` (the portal's service needs it; a bare sway session doesn't start it).
 
 ## Going back
 

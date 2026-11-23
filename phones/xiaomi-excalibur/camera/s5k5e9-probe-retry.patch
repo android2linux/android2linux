@@ -1,0 +1,41 @@
+SPDX-License-Identifier: GPL-2.0
+
+A retry in the s5k5e9 driver's probe (sm7125-mainline/linux, tag sm7125-6.14.7): on excalibur the first
+chip-ID read after power-on sometimes gets no answer, and the CCI controller stays in that state
+until it suspends (1 s autosuspend) and resumes. Power-cycle the sensor, wait 2 s and read again,
+four tries in all. Apply from the kernel tree's root with: patch -p1 < s5k5e9-probe-retry.patch
+
+--- a/drivers/media/i2c/s5k5e9.c	2026-11-23 13:10:39.247754679 -0300
++++ b/drivers/media/i2c/s5k5e9.c	2026-11-23 13:10:39.251754662 -0300
+@@ -695,6 +695,7 @@
+ 
+ static int s5k5e9_probe(struct i2c_client *client)
+ {
++	int attempt;
+ 	struct device *dev = &client->dev;
+ 	struct s5k5e9 *s5k5e9;
+ 	struct v4l2_subdev *sd;
+@@ -758,7 +759,22 @@
+ 	pm_runtime_get_noresume(dev);
+ 	pm_runtime_enable(dev);
+ 
+-	ret = s5k5e9_check_sensor_id(s5k5e9);
++	/*
++	 * On excalibur the first read after power-on sometimes gets no answer ("Cannot read register
++	 * 0") on an otherwise working sensor; a power cycle with a pause long enough for the CCI controller to suspend and reset (its
++	 * autosuspend delay) and a second read find it. Try four times.
++	 */
++	for (attempt = 1; attempt <= 4; attempt++) {
++		ret = s5k5e9_check_sensor_id(s5k5e9);
++		if (!ret || attempt == 4)
++			break;
++		dev_warn(dev, "no answer on try %d, power-cycling the sensor, and leaving the CCI bus to suspend\n", attempt);
++		s5k5e9_power_off(dev);
++		msleep(2000);
++		ret = s5k5e9_power_on(dev);
++		if (ret)
++			break;
++	}
+ 	if (ret)
+ 		goto err_power_off;
+ 
