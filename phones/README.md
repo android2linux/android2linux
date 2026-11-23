@@ -6,7 +6,9 @@ One folder per phone: what runs on it, how to install it, what works and what do
 | Phone | Codename | Chip | Linux | Last checked |
 |---|---|---|---|---|
 | [Xiaomi Poco X8 Pro Max](xiaomi-dash/) | `dash` | MediaTek Dimensity 9500s (MT6991) | no Linux port yet | 2026-11-20 |
+| [Xiaomi Xiaomi Mi 8](xiaomi-dipper/) | `dipper` | Qualcomm Snapdragon 845 (SDM845) | not tried |  |
 | [Xiaomi Redmi Note 9 Pro Max](xiaomi-excalibur/) | `excalibur` | Qualcomm Snapdragon 720G (SM7125) | Ubuntu Touch 24.04-2.2: works; postmarketOS v26.06, Phosh: works with gaps | 2026-11-21 |
+| [Xiaomi Redmi Note 9 4G](xiaomi-lime/) | `lime` | Qualcomm Snapdragon 662 (SM6115) | not tried |  |
 <!-- CATALOGUE:END -->
 
 ## Add a phone

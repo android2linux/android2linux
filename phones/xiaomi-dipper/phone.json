@@ -1,0 +1,9 @@
+{
+  "id": "xiaomi-dipper",
+  "vendor": "Xiaomi",
+  "model": "Xiaomi Mi 8",
+  "codename": "dipper",
+  "family": "sdm845",
+  "soc": "Qualcomm Snapdragon 845 (SDM845)",
+  "systems": []
+}
