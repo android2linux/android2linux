@@ -1,0 +1,10 @@
+[Unit]
+Description=Probe the macro camera again when it did not answer at boot
+After=systemd-modules-load.service systemd-udev-settle.service
+
+[Service]
+Type=exec
+ExecStart=/usr/local/sbin/camera-reprobe
+
+[Install]
+WantedBy=multi-user.target
