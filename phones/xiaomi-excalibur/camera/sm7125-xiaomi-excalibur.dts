@@ -92,3 +92,72 @@
 	};
 };
 
+
+/*
+ * The 8 MP ultrawide, as downstream excalibur (curtana-atoll-camera-sensor-idp.dtsi,
+ * qcom,cam-sensor@3) wires it: CCI0 master 1 (the macro's bus), MCLK4, reset on TLMM GPIO 30,
+ * CSIPHY 0 with two lanes, the ultra AVDD/DVDD rails. Units ship an OV8856 (0x36) or a GC8034
+ * (0x37); this one answers at 0x37 (a GC8034, gc8034.c). The GC8034's register tables (Rockchip's) assume a 24 MHz
+ * input, so MCLK4 runs at 24 MHz rather than downstream's 19.2.
+ */
+&camss {
+	ports {
+		port@0 {
+			csiphy0_ep: endpoint {
+				data-lanes = <0 1>;
+				remote-endpoint = <&cam_gc8034_ep>;
+			};
+		};
+	};
+};
+
+&cci0_i2c1 {
+	gc8034@37 {
+		compatible = "galaxycore,gc8034";
+		reg = <0x37>;
+
+		dovdd-supply = <&vreg_l13a_1p8>;
+		avdd-supply = <&ultra_avdd_2p8>;
+		dvdd-supply = <&ultra_dvdd_1p2>;
+
+		power-domains = <&camcc TITAN_TOP_GDSC>;
+		clocks = <&camcc CAM_CC_MCLK4_CLK>;
+		clock-names = "xvclk";
+		clock-frequency = <24000000>;
+		assigned-clocks = <&camcc CAM_CC_MCLK4_CLK>;
+		assigned-clock-rates = <24000000>;
+
+		reset-gpios = <&tlmm 30 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&cam_gc8034_default>;
+
+		orientation = <1>;
+		rotation = <270>;
+
+		port {
+			cam_gc8034_ep: endpoint {
+				data-lanes = <0 1>;
+				link-frequencies = /bits/ 64 <336000000>;
+				remote-endpoint = <&csiphy0_ep>;
+			};
+		};
+	};
+};
+
+&tlmm {
+	cam_gc8034_default: cam-gc8034-default-state {
+		rst-pins {
+			pins = "gpio30";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-disable;
+		};
+
+		mclk4-pins {
+			pins = "gpio23";
+			function = "cam_mclk";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+};

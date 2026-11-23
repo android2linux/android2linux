@@ -1,6 +1,6 @@
 # Xiaomi Redmi Note 9 Pro Max (`excalibur`)
 
-Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet (it charges slowly), and of the five cameras only the 5 MP macro works, with a device tree of its own and a kernel module fix ([below](#cameras-on-postmarketos)).
+Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet (it charges slowly), and of the five cameras two work, the 8 MP ultrawide and the 5 MP macro, with a device tree of its own, a kernel module fix and a ported sensor driver ([below](#cameras-on-postmarketos)).
 
 ## Contents
 
@@ -84,7 +84,7 @@ After the first boot, for Chromium and web apps: `gsettings set sm.puri.phoc sca
 | Mobile data | works | works with upstream `tqftpserv`: LTE, IPv4 and IPv6, ~28 Mbit/s down; reconnects after reboot |
 | SMS | not tested | works both ways |
 | Calls | listed as working by UBports | connect; call audio not tested (`q6voiced` is probably needed) |
-| Camera | listed as working by UBports | the 5 MP macro works with the [excalibur device tree and the CSIPHY fix](#cameras-on-postmarketos); main, ultrawide, depth and front don't |
+| Camera | listed as working by UBports | the 8 MP ultrawide (GC8034 units) and the 5 MP macro work with the [excalibur device tree, the CSIPHY fix and a ported GC8034 driver](#cameras-on-postmarketos); main, depth and front don't |
 | Speaker | not tested | works, quiet (TAS2562 amplifier) |
 | Headphones, microphones, earpiece | not tested | not tested |
 | Bluetooth | not tested | controller up |
@@ -104,7 +104,7 @@ The Pro Max's cameras ([camera guide](../../skills/android2linux/references/guid
 | Camera | Sensor | Driver |
 |---|---|---|
 | Main, 64 MP | Samsung S5KGW1 | none anywhere |
-| Ultrawide, 8 MP | OmniVision OV8856 or GalaxyCore GC8034, by unit | OV8856 in mainline; GC8034 none |
+| Ultrawide, 8 MP | OmniVision OV8856 or GalaxyCore GC8034, by unit | OV8856 in mainline; GC8034 [ported here](camera/gc8034/) from Rockchip's kernel |
 | Macro, 5 MP | Samsung S5K5E9 | in the sm7125 kernel (out of tree) |
 | Depth, 2 MP | GalaxyCore GC02M1 | none |
 | Front, 32 MP | OmniVision OV32A1Q (not joyeuse's OV16A1Q) | none |
@@ -119,7 +119,30 @@ Build both on the phone, against the kernel package's own source (tag `sm7125-6.
 
 The first changes went in together, so which of them the macro needs isn't separated yet; removing the front sensor (so `qcom-camss` can register) is the likely one. Giving the rails a 5 ms start-up delay made no difference and isn't in the tree.
 
-**In apps**, through PipeWire: WirePlumber lists it as "Built-in Back Camera" (libcamera) and the desktop portal reports a camera. Chromium reaches it with `--enable-features=WebRtcPipeWireCamera` once the session runs `graphical-session.target` (the portal's service needs it; a bare sway session doesn't start it).
+**The ultrawide works** on units with the GalaxyCore GC8034:
+
+- **Which sensor.** Xiaomi's excalibur kernel wires the ultrawide like mainline curtana's OV8856: on the macro's CCI bus (CCI0, master 1), clock MCLK4, reset on TLMM GPIO 30, CSIPHY 0 with two lanes, the macro's 2.8 V and 1.2 V rails. Units ship an OV8856 (at `0x36`) or a GC8034 (at `0x37`). The OV8856 driver at `0x36` got no answer (`-5`); pointed at `0x37` it read a wrong chip ID (`chip id mismatch: 885a!=0`, `-6`). Something answered there, so the unit tested has the GC8034. The [camera guide](../../skills/android2linux/references/guides/mainline-camera.md#which-variant-a-unit-has) has the method.
+- **The driver.** Mainline has none. [`gc8034/gc8034.c`](camera/gc8034/gc8034.c) ports Rockchip's (rockchip-linux/kernel `develop-6.1`, GPL-2.0): its register tables, exposure and gain programming and power sequence, without Rockchip's module ioctls and OTP calibration, for kernel 6.14. Rockchip's 30 fps two-lane tables streamed garbled frames here: every line arrived 3856 bytes long instead of 4080, so the picture sheared and ran short of the frame. Its 15 fps set (336 MHz link, 672 Mbps a lane) is right: 3264 × 2448 RAW10 at 15 fps. The tables expect a 24 MHz input clock, so the tree runs MCLK4 at 24 MHz rather than Xiaomi's 19.2. Build it on the phone like the other modules (`make -C <kernel tree> M=$PWD modules` in that folder) and put `gc8034.ko` in `/lib/modules/$(uname -r)/updates/`.
+- **The tree.** [`sm7125-xiaomi-excalibur.dts`](camera/sm7125-xiaomi-excalibur.dts) has its node, `galaxycore,gc8034` at `0x37`, on CSIPHY 0 at a 336 MHz link. On an OV8856 unit, use mainline curtana's `ov8856@36` node instead; it isn't tested here. A sensor whose node probes but never binds keeps `qcom-camss` from registering, which hides the macro too. So test a changed tree for one boot first ([camera guide](../../skills/android2linux/references/guides/mainline-camera.md#boot-it-from-a-second-entry)).
+- **Boot.** The GC8034 also missed its first read once (a `-110` timeout on the shared bus): the driver retries like the macro's. On about one boot in twelve the macro still missed all four tries. [`camera-reprobe`](camera/camera-reprobe), a script run by [`camera-reprobe.service`](camera/camera-reprobe.service), binds either driver again, up to five times 10 s apart, until both sensors are found.
+
+`cam -l` then lists two cameras, `/base/soc@0/cci@ac4a000/i2c-bus@1/gc8034@37` and `…/s5k5e9@2d`. The ultrawide's picture is wider than the macro's and focuses at a distance; its colours look right, though it comes out brighter than the macro with libcamera's uncalibrated defaults.
+
+**In apps**, through PipeWire: WirePlumber lists it as "Built-in Back Camera" (libcamera) and the desktop portal reports a camera. Chromium reaches it with `--enable-features=WebRtcPipeWireCamera` once the session runs `graphical-session.target` (the portal's service needs it; a bare sway session doesn't start it). In a tab, `getUserMedia` gives the camera at 640 × 480 and 30 fps. libcamera's formats reach Chromium without a frame rate, and it uses them anyway.
+
+**With GStreamer** (`gstreamer-tools`, `libcamera-gstreamer`, `gst-plugins-good`), a program can run the camera itself:
+
+```sh
+gst-launch-1.0 libcamerasrc camera-name=/base/soc@0/cci@ac4a000/i2c-bus@1/gc8034@37 \
+  ! video/x-raw,width=1632,height=1224 ! videoconvert ! videoflip method=clockwise \
+  ! jpegenc ! multipartmux ! fdsink fd=1
+```
+
+- **Size.** The macro's full size is 2584 × 1944; 2592 fails to negotiate.
+- **Rotation.** Both sensors are mounted a quarter turn from portrait (rotation 270), and `method=clockwise` makes the picture upright.
+- **Frame count.** `libcamerasrc` has no `num-buffers`; read frames and stop.
+- **Exposure.** The automatic exposure settles in about seven frames.
+- **One process.** While one process holds a camera, another can't even list it: `cam -l` comes back empty.
 
 ## Going back
 
@@ -144,4 +167,4 @@ Measurements behind the tables above, from 2026-11-20 and 2026-11-21.
 
 ## Last checked
 
-Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium). Cameras: 2026-11-23 (the macro captures; the others not tried).
+Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium). Cameras: 2026-11-23 (the macro and the ultrawide capture; main, depth and front not tried).

@@ -7,10 +7,14 @@ How to find out why a phone's cameras don't work under a mainline kernel, which 
 - [How it fits together](#how-it-fits-together)
 - [What the phone has now](#what-the-phone-has-now)
 - [Which sensors the phone really has](#which-sensors-the-phone-really-has)
+- [Which variant a unit has](#which-variant-a-unit-has)
 - [The usual causes](#the-usual-causes)
+- [A sensor with no mainline driver](#a-sensor-with-no-mainline-driver)
 - [Build on the phone](#build-on-the-phone)
 - [Boot it from a second entry](#boot-it-from-a-second-entry)
+- [Count, don't trust one boot](#count-dont-trust-one-boot)
 - [Take a picture](#take-a-picture)
+- [Check the frames](#check-the-frames)
 - [Last verified](#last-verified)
 
 ## How it fits together
@@ -48,7 +52,15 @@ Spec sheets give megapixels, rarely sensor models. Better sources, most reliable
 
 Some phones ship different sensors in different units (excalibur's ultrawide is an OV8856 or a GC8034). Only the sensor's chip ID, read over CCI once it's powered, tells which one yours has.
 
-Then check each model for a driver: mainline `drivers/media/i2c/` (its Kconfig), the phone family's kernel fork, and the linux-media list. No driver means writing one; that is the hard case, and usually the main camera's.
+Then check each model for a driver: mainline `drivers/media/i2c/` (its Kconfig), the phone family's kernel fork, and the linux-media list. With no mainline driver, look in other vendors' kernels ([below](#a-sensor-with-no-mainline-driver)) before writing one.
+
+## Which variant a unit has
+
+When a camera ships with two sensors, they usually sit at different addresses on the same bus: excalibur's ultrawide is an OV8856 at `0x36` or a GC8034 at `0x37`. An existing driver can tell which one answers before you have the other's driver:
+
+1. Add a node for the sensor that has a driver, wired as the vendor's tree says (bus, clock, reset, rails, CSIPHY), and boot it once.
+2. `Cannot read …`, `failed to find sensor: -5` (EIO) or `-110` means nothing answered at that address (or it's unpowered).
+3. Move the node to the other address. A **wrong chip ID** (`chip id mismatch: 885a!=0`, `-6`) means a chip answered there, just not the one the driver expects. Each vendor reads its ID from different registers, so the value it reads is meaningless; that something answered is the answer.
 
 ## The usual causes
 
@@ -56,6 +68,18 @@ Then check each model for a driver: mainline `drivers/media/i2c/` (its Kconfig),
 - **The right sensor, wrongly powered or clocked.** Compare the node with the vendor's: the MCLK rate (excalibur's macro wants 24 MHz, the mainline node had 19.2) and every rail (a second analog supply on another GPIO, for another production batch of the same module). A fixed regulator with `regulator-always-on` is enough for a first test.
 - **A sensor that sometimes doesn't answer at boot.** If a re-probe later works (`echo <bus>-<addr> > /sys/bus/i2c/drivers/<driver>/bind`), the first read failed on a CCI controller that only resets when it suspends and resumes (about a second idle): a retry in the driver's probe that waits that long finds the sensor. Give the sensor node the camera block's power domain (`power-domains = <&camcc TITAN_TOP_GDSC>` on SC7180-class SoCs), or a second try fails with `Failed to enable xvclk` (-16).
 - **The CSIPHY programming.** Frames need the PHY's lane settings for that SoC; on SM7125 the mainline table is wrong and a community fix replaces it ([asidko/qcom-camss-mainline](https://github.com/asidko/qcom-camss-mainline)).
+
+## A sensor with no mainline driver
+
+Many sensors with no mainline driver have one in an SoC vendor's kernel: Rockchip's [rockchip-linux/kernel](https://github.com/rockchip-linux/kernel) (`drivers/media/i2c/`) has dozens, GalaxyCore and SmartSens among them, under the GPL. They are ordinary V4L2 subdevice drivers with the register tables a sensor needs to start, so porting one is mostly removing what is Rockchip's own:
+
+- **Remove** `rkmodule` ioctls and module info, `rk-camera-module.h`, OTP calibration through Rockchip's `otp_eeprom`, and `rockchip,camera_*` pinctrl states.
+- **Change** for the current kernel: `probe(struct i2c_client *)`, `remove` returning `void`, `v4l2_subdev_state_get_format` for try formats, `DEFINE_RUNTIME_DEV_PM_OPS`, `v4l2_link_freq_to_bitmap` against the tree's `link-frequencies`, and `v4l2_ctrl_new_fwnode_properties` so libcamera gets the rotation and the mounting position.
+- **Keep** the vendor's tables for your lane count and input clock (they usually assume 24 MHz: run the clock at that, `assigned-clock-rates`), the exposure and gain programming, and the power sequence.
+
+The vendor's driver often carries several table sets; they aren't all equally tested. Excalibur's [ported GC8034](../../../../phones/xiaomi-excalibur/camera/gc8034/) streamed with Rockchip's 30 fps two-lane set but the frames were wrong ([below](#check-the-frames)); its 15 fps set was right.
+
+A driver built outside the kernel tree needs only a one-line `Makefile` (`obj-m := <name>.o`): `make -C <kernel tree> M=$PWD modules`.
 
 ## Build on the phone
 
@@ -82,6 +106,7 @@ Change nothing the phone boots from now; add beside it.
 
 - The module goes in `/lib/modules/$(uname -r)/updates/` (then `sudo depmod`): it wins over the original, and deleting it goes back.
 - The tree goes next to the others (`/boot/dtbs/qcom/`), and a **second boot entry** uses it. With systemd-boot (postmarketOS on U-Boot boards): copy `/boot/loader/entries/pmos.conf` to a new file, change its `title` and `sort-key`, and add `devicetree /dtbs/qcom/<your-phone>.dtb`. In `/boot/loader/loader.conf`, `default <new file>` and `timeout 10` make it the default and show the menu, so the old entry can be picked at boot if the new one doesn't start.
+- **A tree for one boot.** systemd-boot has a one-shot entry (`bootctl set-oneshot`), but U-Boot's EFI variables don't survive a reboot, so it has no effect there. Instead, set `default` to the test entry, reboot, and set it back as soon as the phone is up. A tree that breaks only the camera still boots, so this is safe for sensor nodes.
 - Charge first. A build at full load drains a phone quickly, and one without a charger driver may not start again until it has charged with the screen off ([Charging without a driver](charging-without-a-driver.md)).
 
 ## Count, don't trust one boot
@@ -105,6 +130,22 @@ cam -c1 --capture=8 --stream role=still --file=/tmp/frame#.ppm
 
 `cam -l` lists the cameras libcamera found; a warning that there's no tuning file (`<sensor>.yaml`) or sensor helper means it uses uncalibrated defaults, so the colours are off but the picture is real. The first frames may be dark while exposure settles: keep the last.
 
+## Check the frames
+
+Frames that arrive aren't necessarily right. Capture a raw frame (`cam -c<n> --capture=6 --stream role=raw --file=raw#.bin`) and look at its bytes:
+
+- **Real data fills the frame.** A black band at the bottom (zeros after some line) means less data came than the format says.
+- **A sheared or striped picture** means the lines are a different length from what the format says. Find the real length: the offset at which each byte best matches the byte one line further on.
+
+  ```python
+  import numpy as np
+  d = np.fromfile("raw.bin", dtype=np.uint8).astype(np.int16)[200_000:2_200_000]
+  print(sorted((float(np.abs(d[:-L] - d[L:]).mean()), L) for L in range(3000, 8400))[:3])
+  ```
+
+  For RAW10 the line should be width × 5/4 bytes (4080 for 3264). Excalibur's GC8034 on Rockchip's 30 fps tables gave 3856, and on the 15 fps tables 4080.
+- **Then look at it** in good light, beside a camera that works.
+
 ## Last verified
 
-On excalibur, postmarketOS v26.06, `linux-postmarketos-qcom-sm7125` 6.14.7-r0, libcamera 0.7.1: 2026-11-23. The macro (S5K5E9) captures; with the probe retry it was found on eight boots in a row. Which of the first changes it needs isn't separated yet. PipeWire and the portal list it; a camera app on top isn't done.
+On excalibur, postmarketOS v26.06, `linux-postmarketos-qcom-sm7125` 6.14.7-r0, libcamera 0.7.1: 2026-11-23. The macro (S5K5E9) captures; with the probe retry it was found on eight boots in a row, and a late re-probe catches the rarer misses. The ultrawide (GC8034, with the ported driver) captures at 3264 × 2448 and 15 fps. Chromium uses the camera through PipeWire in a tab, and a GStreamer pipeline (`libcamerasrc`) runs it for a camera app.

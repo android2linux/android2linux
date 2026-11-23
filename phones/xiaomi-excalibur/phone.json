@@ -18,7 +18,7 @@
       "version": "v26.06, Phosh",
       "status": "works with gaps",
       "checked": "2026-11-23",
-      "notes": "Unsupported variant: needs a U-Boot match patch and upstream tqftpserv. No charger driver (slow charging). Only the macro camera works, with an excalibur device tree and a qcom-camss fix (camera/). Call audio untested."
+      "notes": "Unsupported variant: needs a U-Boot match patch and upstream tqftpserv. No charger driver (slow charging). The ultrawide (GC8034 units) and macro cameras work, with an excalibur device tree, a qcom-camss fix and a ported GC8034 driver (camera/). Call audio untested."
     }
   ]
 }

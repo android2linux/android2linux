@@ -1,0 +1,23 @@
+#!/bin/sh
+# The cameras on the macro's CCI bus (s5k5e9, gc8034) sometimes miss every try of their probe at
+# boot, and a probe some seconds later finds them. Until each is bound, bind its driver again:
+# five times, 10 s apart.
+pending() {
+  out=""
+  for d in /sys/bus/i2c/devices/*; do
+    name=$(cat "$d/name" 2>/dev/null)
+    case "$name" in s5k5e9|gc8034) [ -e "$d/driver" ] || out="$out $name:$(basename "$d")" ;; esac
+  done
+  echo "$out"
+}
+for i in 1 2 3 4 5; do
+  [ -z "$(pending)" ] && exit 0
+  sleep 10
+  for entry in $(pending); do
+    drv=${entry%%:*}; dev=${entry#*:}
+    echo "camera-reprobe: binding $dev to $drv again (try $i)"
+    echo "$dev" > "/sys/bus/i2c/drivers/$drv/bind" 2>/dev/null || true
+  done
+  sleep 3
+done
+[ -z "$(pending)" ]
