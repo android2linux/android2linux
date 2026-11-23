@@ -1,0 +1,9 @@
+{
+  "id": "xiaomi-lime",
+  "vendor": "Xiaomi",
+  "model": "Redmi Note 9 4G",
+  "codename": "lime",
+  "family": "sm6115",
+  "soc": "Qualcomm Snapdragon 662 (SM6115)",
+  "systems": []
+}
