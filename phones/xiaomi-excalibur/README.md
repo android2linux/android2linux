@@ -1,6 +1,6 @@
 # Xiaomi Redmi Note 9 Pro Max (`excalibur`)
 
-Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet (it charges slowly) and no working camera.
+Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet (it charges slowly), and of the five cameras only the 5 MP macro works, with a device tree of its own and a kernel module fix ([below](#cameras-on-postmarketos)).
 
 ## Contents
 
@@ -84,7 +84,7 @@ After the first boot, for Chromium and web apps: `gsettings set sm.puri.phoc sca
 | Mobile data | works | works with upstream `tqftpserv`: LTE, IPv4 and IPv6, ~28 Mbit/s down; reconnects after reboot |
 | SMS | not tested | works both ways |
 | Calls | listed as working by UBports | connect; call audio not tested (`q6voiced` is probably needed) |
-| Camera | listed as working by UBports | none (see below) |
+| Camera | listed as working by UBports | the 5 MP macro works with the [excalibur device tree and the CSIPHY fix](#cameras-on-postmarketos); main, ultrawide, depth and front don't |
 | Speaker | not tested | works, quiet (TAS2562 amplifier) |
 | Headphones, microphones, earpiece | not tested | not tested |
 | Bluetooth | not tested | controller up |
@@ -95,7 +95,28 @@ After the first boot, for Chromium and web apps: `gsettings set sm.puri.phoc sca
 | Suspend | not tested | `s2idle` works |
 | GPS, NFC, fingerprint | not tested | not tested; the family's postmarketOS wiki lists them as not working |
 
-**Cameras on postmarketOS.** The `joyeuse` device tree describes a front `ov16a1q`, a macro `s5k5e9` and a focus motor `dw9714`, and no main camera. On this phone the `s5k5e9` is detected, but the `ov16a1q` fails (`Cannot read register`, -5): the Pro Max has a different, 32 MP front sensor. Because one sensor never binds, `qcom-camss` never registers its media device, so no app sees any camera. The macro camera could work after disabling the `ov16a1q` node and its camss endpoint in the device tree, plus a community qcom-camss CSIPHY patch; the front and main cameras need drivers that don't exist in mainline.
+### Cameras on postmarketOS
+
+The kernel picks the `joyeuse-huaxing` device tree (the U-Boot match patch above), which describes the Redmi Note 9 Pro's cameras: a front `ovti,ov16a1q` and a macro `samsung,s5k5e9` with a `dongwoon,dw9714` focus motor. With it, both fail at boot (`ov16a1q: Cannot read register 12299`, `s5k5e9: Cannot read register 0` after a CCI timeout), and because a sensor never binds, `qcom-camss` never registers `/dev/media0`: no app sees any camera.
+
+The Pro Max's cameras ([camera guide](../../skills/android2linux/references/guides/mainline-camera.md) for how to find them):
+
+| Camera | Sensor | Driver |
+|---|---|---|
+| Main, 64 MP | Samsung S5KGW1 | none anywhere |
+| Ultrawide, 8 MP | OmniVision OV8856 or GalaxyCore GC8034, by unit | OV8856 in mainline; GC8034 none |
+| Macro, 5 MP | Samsung S5K5E9 | in the sm7125 kernel (out of tree) |
+| Depth, 2 MP | GalaxyCore GC02M1 | none |
+| Front, 32 MP | OmniVision OV32A1Q (not joyeuse's OV16A1Q) | none |
+
+**The macro works** with two changes, both in [`camera/`](camera/):
+
+- [`sm7125-xiaomi-excalibur.dts`](camera/sm7125-xiaomi-excalibur.dts): joyeuse's tree with the front sensor and its CAMSS endpoint disabled, the macro's clock at 24 MHz and a second 2.8 V analog rail (TLMM GPIO 43), as Xiaomi's own excalibur kernel has them.
+- [`camss-csiphy-fix.patch`](camera/camss-csiphy-fix.patch): the CSIPHY lane table and PHY-enable writes for this SoC, from [asidko/qcom-camss-mainline](https://github.com/asidko/qcom-camss-mainline).
+
+Build both on the phone, against the kernel package's own source (tag `sm7125-6.14.7` for `linux-postmarketos-qcom-sm7125` 6.14.7-r0) and its config, and boot the tree from a second boot entry, so the original stays one menu choice away. The steps are in the [camera guide](../../skills/android2linux/references/guides/mainline-camera.md#build-on-the-phone). Then `dmesg` shows `s5k5e9 13-002d: Detected s5k5e9 sensor`, `cam -l` (libcamera 0.7.1) lists it as "Internal back camera", and `cam -c1 --capture=8 --stream role=still --file=frame#.ppm` writes 2584 × 1944 frames at 19 to 38 fps. The image is real and in focus but pale: libcamera has no tuning file for this sensor yet.
+
+All four changes went in together, so which of them the macro needs isn't known yet; removing the front sensor (so `qcom-camss` can register) is the likely one.
 
 ## Going back
 
@@ -120,4 +141,4 @@ Measurements behind the tables above, from 2026-11-20 and 2026-11-21.
 
 ## Last checked
 
-Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium).
+Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium). Cameras: 2026-11-23 (the macro captures; the others not tried).

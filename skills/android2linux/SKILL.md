@@ -34,7 +34,7 @@ Where things are, relative to this file (the skill is installed as a link into a
 4. **Prepare the base** the chosen OS needs (for Halium ports, a specific Android version underneath), verifying every image and the anti-rollback index first. → [safe-flashing.md](references/guides/safe-flashing.md)
 5. **Install.** → [ubuntu-touch.md](references/guides/ubuntu-touch.md), [postmarketos-unsupported-variant.md](references/guides/postmarketos-unsupported-variant.md)
 6. **Set up access from the PC** (SSH keys, USB networking, screenshots) so you can see and fix things. → [working-from-your-pc.md](references/guides/working-from-your-pc.md)
-7. **Bring up the hardware** one piece at a time, and debug what's missing by comparing with an OS where it works. → [qualcomm-modem-debugging.md](references/guides/qualcomm-modem-debugging.md), [charging-without-a-driver.md](references/guides/charging-without-a-driver.md)
+7. **Bring up the hardware** one piece at a time, and debug what's missing by comparing with an OS where it works. → [qualcomm-modem-debugging.md](references/guides/qualcomm-modem-debugging.md), [charging-without-a-driver.md](references/guides/charging-without-a-driver.md), [mainline-camera.md](references/guides/mainline-camera.md)
 8. **Make it theirs**: apps, ad blocking, a custom UI or kiosk. → [chromium-kiosk.md](references/guides/chromium-kiosk.md)
 9. **Rework desktop-only web apps** into phone apps: map the page's structure (never its content), change CSS live while the user watches, fold it into an extension. Install existing ones with `apps/install <app>`; add new ones in the same shape. → [`apps/`](../../apps/README.md), [`apps/dev/`](../../apps/dev/README.md)
 

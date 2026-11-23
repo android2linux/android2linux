@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Xiaomi Redmi Note 9 Pro Max (excalibur, miatoll family, SM7125)
+ *
+ * Based on sm7125-xiaomi-joyeuse-huaxing.dts (same Huaxing panel and
+ * FocalTech touchscreen). Camera differences from joyeuse are documented in
+ * sm7125-xiaomi-excalibur.notes.md.
+ */
+
+/dts-v1/;
+
+#include "sm7125-xiaomi-joyeuse.dtsi"
+
+/ {
+	model = "Xiaomi Redmi Note 9 Pro Max";
+	compatible = "xiaomi,excalibur", "xiaomi,miatoll", "qcom,sm7125";
+
+	/*
+	 * Downstream excalibur/curtana powers the macro sensor's AVDD from
+	 * TLMM GPIO 43 ("depth_ldo_avdd"), while the front sensor uses
+	 * PM6150L GPIO 8 ("ultra_ldo_avdd"). Mainline's s5k5e9 driver takes a
+	 * single vana supply, so this rail is kept always-on for the first
+	 * test.
+	 */
+	depth_avdd_2p8: regulator-depth-avdd-2p8 {
+		compatible = "regulator-fixed";
+		regulator-name = "depth_avdd_2p8";
+		regulator-min-microvolt = <2800000>;
+		regulator-max-microvolt = <2800000>;
+		regulator-enable-ramp-delay = <100>;
+		regulator-always-on;
+		enable-active-high;
+		gpio = <&tlmm 43 0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&cam_depth_avdd_default>;
+		vin-supply = <&vreg_bob>;
+	};
+};
+
+&panel { compatible = "huaxing,ft8756"; };
+&touchscreen {
+	compatible = "focaltech,ft8756-spi";
+	firmware-name = "focaltech_ts_fw_huaxing.bin";
+};
+
+&camss {
+	ports {
+		port@3 {
+			csiphy3_ep: endpoint {
+				status = "disabled";
+			};
+		};
+	};
+};
+
+&cci0_i2c1 {
+	/*
+	 * The macro sensor's MCLK runs at 24 MHz on excalibur (downstream
+	 * curtana-atoll-camera-sensor-idp.dtsi), not joyeuse's 19.2 MHz.
+	 */
+	s5k5e9@2d {
+		clock-frequency = <24000000>;
+		assigned-clock-rates = <24000000>;
+	};
+};
+
+&cci1_i2c0 {
+	/*
+	 * The Pro Max has a different 32 MP front sensor (not ov16a1q); the
+	 * joyeuse node fails to probe (register read -5) and keeps the CAMSS
+	 * media graph from completing.
+	 */
+	ov16a1q@10 {
+		status = "disabled";
+	};
+};
+
+&tlmm {
+	cam_depth_avdd_default: cam-depth-avdd-default-state {
+		en-pins {
+			pins = "gpio43";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+};
