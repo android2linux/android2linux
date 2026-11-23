@@ -59,6 +59,12 @@
 	 * curtana-atoll-camera-sensor-idp.dtsi), not joyeuse's 19.2 MHz.
 	 */
 	s5k5e9@2d {
+		/*
+		 * The sensor's MCLK runs only while the camera block's TITAN_TOP_GDSC is on. Without
+		 * the domain here, the probe sometimes enabled the clock while the CCI bus (which has
+		 * the domain) was suspended: "Cannot read register 0", then "Failed to enable xvclk".
+		 */
+		power-domains = <&camcc TITAN_TOP_GDSC>;
 		clock-frequency = <24000000>;
 		assigned-clock-rates = <24000000>;
 	};
@@ -85,3 +91,4 @@
 		};
 	};
 };
+

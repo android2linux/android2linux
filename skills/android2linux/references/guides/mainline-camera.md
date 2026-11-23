@@ -54,6 +54,7 @@ Then check each model for a driver: mainline `drivers/media/i2c/` (its Kconfig),
 
 - **A sibling's sensor in the device tree.** The tree describes a chip the phone doesn't have; its probe fails and blocks CAMSS. Disable that sensor node **and the CAMSS endpoint that links to it** (`status = "disabled"` on the endpoint; `camss_of_parse_ports` skips unavailable endpoints).
 - **The right sensor, wrongly powered or clocked.** Compare the node with the vendor's: the MCLK rate (excalibur's macro wants 24 MHz, the mainline node had 19.2) and every rail (a second analog supply on another GPIO, for another production batch of the same module). A fixed regulator with `regulator-always-on` is enough for a first test.
+- **A sensor that sometimes doesn't answer at boot.** If a re-probe later works (`echo <bus>-<addr> > /sys/bus/i2c/drivers/<driver>/bind`), the first read failed on a CCI controller that only resets when it suspends and resumes (about a second idle): a retry in the driver's probe that waits that long finds the sensor. Give the sensor node the camera block's power domain (`power-domains = <&camcc TITAN_TOP_GDSC>` on SC7180-class SoCs), or a second try fails with `Failed to enable xvclk` (-16).
 - **The CSIPHY programming.** Frames need the PHY's lane settings for that SoC; on SM7125 the mainline table is wrong and a community fix replaces it ([asidko/qcom-camss-mainline](https://github.com/asidko/qcom-camss-mainline)).
 
 ## Build on the phone
@@ -83,6 +84,17 @@ Change nothing the phone boots from now; add beside it.
 - The tree goes next to the others (`/boot/dtbs/qcom/`), and a **second boot entry** uses it. With systemd-boot (postmarketOS on U-Boot boards): copy `/boot/loader/entries/pmos.conf` to a new file, change its `title` and `sort-key`, and add `devicetree /dtbs/qcom/<your-phone>.dtb`. In `/boot/loader/loader.conf`, `default <new file>` and `timeout 10` make it the default and show the menu, so the old entry can be picked at boot if the new one doesn't start.
 - Charge first. A build at full load drains a phone quickly, and one without a charger driver may not start again until it has charged with the screen off ([Charging without a driver](charging-without-a-driver.md)).
 
+## Count, don't trust one boot
+
+A probe that works once may fail on the next boot. Reboot several times and count, from the PC:
+
+```sh
+for i in 1 2 3 4 5 6 7 8; do
+  ssh <phone> 'sudo systemctl reboot'; sleep 90
+  ssh <phone> 'sudo dmesg | grep -E "<sensor>.*(Detected|Cannot|failed)" | head -2'
+done
+```
+
 ## Take a picture
 
 ```sh
@@ -95,4 +107,4 @@ cam -c1 --capture=8 --stream role=still --file=/tmp/frame#.ppm
 
 ## Last verified
 
-On excalibur, postmarketOS v26.06, `linux-postmarketos-qcom-sm7125` 6.14.7-r0, libcamera 0.7.1: 2026-11-23. The macro (S5K5E9) captures with the four changes together; which of them it needs isn't separated yet. Not tried: the other cameras, PipeWire and apps on top.
+On excalibur, postmarketOS v26.06, `linux-postmarketos-qcom-sm7125` 6.14.7-r0, libcamera 0.7.1: 2026-11-23. The macro (S5K5E9) captures; with the probe retry it was found on eight boots in a row. Which of the first changes it needs isn't separated yet. PipeWire and the portal list it; a camera app on top isn't done.
