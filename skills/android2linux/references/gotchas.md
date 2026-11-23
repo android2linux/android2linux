@@ -66,7 +66,9 @@ Pitfalls, one line each, with the fix and, where there is one, a link to the gui
 - **Don't chase the `qrtr0` MTU warning or `50-dns-filter.sh` failure.** They are harmless.
 - **The speaker is quiet** because its amplifier stays at the default gain, and Linux has no speaker protection: don't raise the gain.
 - **GNOME's "hum" test alert is too soft to judge the speaker.** Test with Firefox instead.
-- **One camera sensor failing blocks them all.** `ov16a1q` failing stops `qcom-camss` registering; there is no usable camera. [`devices/xiaomi-redmi-note-9-pro-max.md`](../../../phones/xiaomi-excalibur/)
+- **One camera sensor failing blocks them all.** CAMSS registers `/dev/media0` only when every linked sensor binds: disable a sensor the phone doesn't have (a sibling's, in a borrowed device tree) and its CAMSS endpoint. [`guides/mainline-camera.md`](guides/mainline-camera.md)
+- **A sibling's device tree describes the sibling's cameras.** Check `/proc/device-tree/model`; compare its sensor nodes with the phone's own (vendor kernel, LineageOS blobs). [`guides/mainline-camera.md`](guides/mainline-camera.md)
+- **Build a kernel module on the phone itself** against the package's exact source and config: same compiler, and with no `MODVERSIONS` or forced signing it loads. Put it in `updates/` and keep the original. [`guides/mainline-camera.md`](guides/mainline-camera.md)
 - **There is no mainline charger driver (SMB5).** Charge from a wall charger with the screen off; a PC port is near break-even. [`guides/charging-without-a-driver.md`](guides/charging-without-a-driver.md)
 - **The battery gauge is unreliable.** Trust capacity and voltage over time; use `current_now` only for its sign (positive = drawn, negative = charging).
 - **Call audio needs `q6voiced`, which isn't installed.** Calls connect but audio is unverified.
