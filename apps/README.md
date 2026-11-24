@@ -39,6 +39,7 @@ apps/<id>/
   "name": "WhatsApp",
   "description": "One line on what it is.",
   "url": "https://web.whatsapp.com/",
+  "color": "#128c4a",
   "extension": "extension",
   "categories": ["Network", "InstantMessaging"],
   "status": "works",
@@ -47,7 +48,9 @@ apps/<id>/
 }
 ```
 
-After adding or changing an app, regenerate the table above with `python3 apps/catalogue.py`.
+`color` is the app's own colour (a tile's or a title bar's background), as a hex code; `icon_url` (or `icon.png`) is its icon.
+
+After adding or changing an app, run `python3 apps/catalogue.py`. It regenerates the table above, and [`catalogue.json`](catalogue.json), the same apps for programs: an app store (LightOS's Store) or an installer reads it instead of every folder.
 
 ## Build a new one
 

@@ -3,8 +3,12 @@
   "name": "WhatsApp",
   "description": "WhatsApp Web with a phone layout: one pane at a time, a back button, a bottom bar.",
   "url": "https://web.whatsapp.com/",
+  "color": "#128c4a",
   "extension": "extension",
-  "categories": ["Network", "InstantMessaging"],
+  "categories": [
+    "Network",
+    "InstantMessaging"
+  ],
   "status": "works",
   "tested": [
     {
