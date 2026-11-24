@@ -4,7 +4,11 @@
   "description": "Free, open-source chess: play people or the computer, puzzles, study. The site already fits a phone screen.",
   "url": "https://lichess.org/",
   "icon_url": "https://lichess1.org/assets/logo/lichess-favicon-512.png",
-  "categories": ["Game", "BoardGame"],
+  "color": "#f4f4f2",
+  "categories": [
+    "Game",
+    "BoardGame"
+  ],
   "status": "works",
   "tested": [
     {

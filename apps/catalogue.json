@@ -1,0 +1,34 @@
+{
+  "apps": [
+    {
+      "id": "lichess",
+      "name": "Lichess",
+      "description": "Free, open-source chess: play people or the computer, puzzles, study. The site already fits a phone screen.",
+      "url": "https://lichess.org/",
+      "icon_url": "https://lichess1.org/assets/logo/lichess-favicon-512.png",
+      "color": "#f4f4f2",
+      "categories": [
+        "Game",
+        "BoardGame"
+      ],
+      "status": "works",
+      "extension": false,
+      "tested": "2026-11-21"
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "description": "WhatsApp Web with a phone layout: one pane at a time, a back button, a bottom bar.",
+      "url": "https://web.whatsapp.com/",
+      "icon_url": "",
+      "color": "#128c4a",
+      "categories": [
+        "Network",
+        "InstantMessaging"
+      ],
+      "status": "works",
+      "extension": true,
+      "tested": "2026-11-21"
+    }
+  ]
+}
