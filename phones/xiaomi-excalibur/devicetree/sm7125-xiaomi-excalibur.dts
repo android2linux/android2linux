@@ -161,3 +161,18 @@
 		};
 	};
 };
+
+/*
+ * Charging: the USB-C port dual-role, preferring sink. sm7125-xiaomi-common.dtsi makes it a source
+ * only, so a USB-C charger (which waits for the phone to ask for power) never turns its output on,
+ * and only USB-A chargers reach the charger. 5 V only: with no charger driver nothing could use more.
+ */
+&pm6150_typec {
+	connector {
+		power-role = "dual";
+		try-power-role = "sink";
+		sink-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_DUAL_ROLE |
+				PDO_FIXED_USB_COMM | PDO_FIXED_DATA_SWAP)>;
+		op-sink-microwatt = <10000000>;
+	};
+};

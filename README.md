@@ -46,7 +46,7 @@ postmarketOS v26.06 with Phosh on a Redmi Note 9 Pro Max. The dots show the taps
 
 | Phone | Chip | Linux | Status |
 |---|---|---|---|
-| [Xiaomi Redmi Note 9 Pro Max](phones/xiaomi-excalibur/) (`excalibur`) | Snapdragon 720G | Ubuntu Touch 24.04; postmarketOS v26.06 | Both run. postmarketOS needs two fixes for this variant; no charger driver; only the macro camera, with a device tree of its own |
+| [Xiaomi Redmi Note 9 Pro Max](phones/xiaomi-excalibur/) (`excalibur`) | Snapdragon 720G | Ubuntu Touch 24.04; postmarketOS v26.06 | Both run. postmarketOS needs two fixes for this variant; no charger driver, but it charges from USB-C chargers with a device-tree fix; only the macro camera, with a device tree of its own |
 | [Xiaomi Poco X8 Pro Max](phones/xiaomi-dash/) (`dash`) | Dimensity 9500s | none yet | No Linux port; Linux runs only inside Android |
 
 The full list, generated from each phone's `phone.json`, is in [`phones/`](phones/).
@@ -76,6 +76,8 @@ Flashing a phone can destroy it and its data. The skill and the guides keep to a
 
 ## Guides
 
+### Process
+
 | Guide | Covers |
 |---|---|
 | [Assess your phone](skills/android2linux/references/guides/assess-your-phone.md) | Whether it can run Linux: codename, ports, unlock policy |
@@ -83,13 +85,25 @@ Flashing a phone can destroy it and its data. The skill and the guides keep to a
 | [Safe flashing](skills/android2linux/references/guides/safe-flashing.md) | Read-only checks, verifying ROMs, anti-rollback, never relock |
 | [Ubuntu Touch](skills/android2linux/references/guides/ubuntu-touch.md) | Installer, access, the read-only system, notch fix |
 | [postmarketOS on an unsupported variant](skills/android2linux/references/guides/postmarketos-unsupported-variant.md) | pmbootstrap from git, the U-Boot match patch, flashing |
-| [Qualcomm modem debugging](skills/android2linux/references/guides/qualcomm-modem-debugging.md) | From `DeviceNotReady` to a working modem |
-| [Charging without a driver](skills/android2linux/references/guides/charging-without-a-driver.md) | What the hardware defaults give, and how to measure |
-| [Cameras on a mainline Qualcomm kernel](skills/android2linux/references/guides/mainline-camera.md) | Why no camera shows, which sensors can work, a fix booted from a second entry |
-| [Chromium kiosk, and Chromium in Phosh](skills/android2linux/references/guides/chromium-kiosk.md) | Full-screen web UIs with cage; web apps that fit the screen |
 | [Working from your PC](skills/android2linux/references/guides/working-from-your-pc.md) | SSH, adb, screenshots, sudo, pitfalls |
 | [Communities and AI](skills/android2linux/references/guides/communities-and-ai.md) | Each project's rules, and how to report bugs |
-| [Gotchas](skills/android2linux/references/gotchas.md) | Pitfalls, one line each |
+
+### Hardware, by area
+
+| Guide | Area | Covers |
+|---|---|---|
+| [Qualcomm modem debugging](skills/android2linux/references/guides/qualcomm-modem-debugging.md) | Modem | From `DeviceNotReady` to a working modem |
+| [Charging on a mainline Qualcomm kernel](skills/android2linux/references/guides/charging-without-a-driver.md) | Charging, USB | No charger driver, and a USB-C port set to source only |
+| [Cameras on a mainline Qualcomm kernel](skills/android2linux/references/guides/mainline-camera.md) | Cameras | Why no camera shows, which sensors can work, a fix booted from a second entry |
+
+### Interface
+
+| Guide | Covers |
+|---|---|
+| [Chromium kiosk, and Chromium in Phosh](skills/android2linux/references/guides/chromium-kiosk.md) | Full-screen web UIs with cage; web apps that fit the screen |
+| [Your own interface, as a session on the login screen](skills/android2linux/references/guides/your-own-session.md) | An interface of your own as a session next to Phosh, with a log out back |
+
+Pitfalls from all of them, one line each: [Gotchas](skills/android2linux/references/gotchas.md).
 
 ## Apps
 

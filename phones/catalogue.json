@@ -1,0 +1,162 @@
+{
+  "phones": [
+    {
+      "id": "xiaomi-dash",
+      "vendor": "Xiaomi",
+      "model": "Poco X8 Pro Max",
+      "codename": "dash",
+      "family": "Redmi Turbo 5 Max",
+      "soc": "MediaTek Dimensity 9500s (MT6991)",
+      "systems": [
+        {
+          "name": "none",
+          "version": "",
+          "status": "no Linux port yet",
+          "checked": "2026-11-20",
+          "notes": "Linux runs only inside Android for now (Android 16's Linux Terminal, Termux)."
+        }
+      ]
+    },
+    {
+      "id": "xiaomi-excalibur",
+      "vendor": "Xiaomi",
+      "model": "Redmi Note 9 Pro Max",
+      "codename": "excalibur",
+      "family": "miatoll",
+      "soc": "Qualcomm Snapdragon 720G (SM7125)",
+      "systems": [
+        {
+          "name": "Ubuntu Touch",
+          "version": "24.04-2.2",
+          "status": "works",
+          "checked": "2026-11-20",
+          "notes": "Official port (miatoll). Needs the stock Android 10 firmware underneath.",
+          "hardware": {
+            "display": {
+              "status": "works"
+            },
+            "touch": {
+              "status": "works"
+            },
+            "gpu": {
+              "status": "works",
+              "notes": "Android drivers via Halium"
+            },
+            "wifi": {
+              "status": "works"
+            },
+            "bluetooth": {
+              "status": "untested"
+            },
+            "modem": {
+              "status": "works",
+              "notes": "mobile data works; SMS not tested; UBports lists calls as working"
+            },
+            "audio": {
+              "status": "untested"
+            },
+            "charging": {
+              "status": "works",
+              "notes": "Android's `qpnp-smb5` driver"
+            },
+            "battery": {
+              "status": "untested"
+            },
+            "suspend": {
+              "status": "untested"
+            },
+            "usb": {
+              "status": "untested"
+            },
+            "cameras": {
+              "status": "reported",
+              "notes": "listed as working by UBports"
+            },
+            "sensors": {
+              "status": "untested"
+            },
+            "gps": {
+              "status": "untested"
+            },
+            "buttons": {
+              "status": "untested"
+            }
+          }
+        },
+        {
+          "name": "postmarketOS",
+          "version": "v26.06, Phosh",
+          "status": "works with gaps",
+          "checked": "2026-11-28",
+          "notes": "Unsupported variant: needs a U-Boot match patch and upstream tqftpserv. No charger driver: charges at about 0.75 A once the excalibur device tree makes the USB-C port dual-role (devicetree/). The ultrawide (GC8034 units) and macro cameras work, with an excalibur device tree (devicetree/), a qcom-camss fix and a ported GC8034 driver (camera/). Call audio untested.",
+          "hardware": {
+            "display": {
+              "status": "works"
+            },
+            "touch": {
+              "status": "works",
+              "notes": "FocalTech FT8756"
+            },
+            "gpu": {
+              "status": "works",
+              "notes": "freedreno, firmware `a630_sqe.fw`, `a630_gmu.bin`; Phosh and WebGL render on the Adreno"
+            },
+            "wifi": {
+              "status": "works"
+            },
+            "bluetooth": {
+              "status": "partial",
+              "notes": "controller up"
+            },
+            "modem": {
+              "status": "partial",
+              "notes": "data works with upstream `tqftpserv`: LTE, IPv4 and IPv6, ~28 Mbit/s down, reconnects after reboot; SMS works both ways; calls connect, call audio not tested (`q6voiced` is probably needed)",
+              "guide": "qualcomm-modem-debugging.md"
+            },
+            "audio": {
+              "status": "partial",
+              "notes": "speaker works, quiet (TAS2562 amplifier); microphones, earpiece, headphones not tested"
+            },
+            "charging": {
+              "status": "partial",
+              "notes": "charges from a USB-C charger at about 0.75 A once the device tree makes the USB-C port dual-role (with the stock tree, only USB-A sources reach the charger, slowly); no charger driver, so no fast charging and no charging status",
+              "guide": "charging-without-a-driver.md",
+              "fix": "charging"
+            },
+            "battery": {
+              "status": "partial",
+              "notes": "capacity and voltage; status always \"Unknown\""
+            },
+            "suspend": {
+              "status": "works",
+              "notes": "`s2idle`"
+            },
+            "usb": {
+              "status": "works",
+              "notes": "USB networking and SSH work (tested with the stock source-only port, not yet with the dual-role tree); dual-role with the excalibur device tree",
+              "fix": "devicetree"
+            },
+            "cameras": {
+              "status": "partial",
+              "notes": "the 8 MP ultrawide on GC8034 units and the 5 MP macro work; main, depth and front don't",
+              "guide": "mainline-camera.md",
+              "fix": "camera"
+            },
+            "sensors": {
+              "status": "untested",
+              "notes": "sensor service runs; rotation not tested"
+            },
+            "gps": {
+              "status": "untested",
+              "notes": "the family's postmarketOS wiki lists them as not working"
+            },
+            "buttons": {
+              "status": "works",
+              "notes": "detected (drv2624 haptics)"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

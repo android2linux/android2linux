@@ -1,6 +1,6 @@
 # Xiaomi Redmi Note 9 Pro Max (`excalibur`)
 
-Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet (it charges slowly), and of the five cameras two work, the 8 MP ultrawide and the 5 MP macro, with a device tree of its own, a kernel module fix and a ported sensor driver ([below](#cameras-on-postmarketos)).
+Runs Ubuntu Touch 24.04 (official port) and postmarketOS v26.06 (unsupported variant, with two fixes). On postmarketOS there is no charger driver yet: it charges at about 0.75 A from a USB-C charger once its device tree makes the USB-C port dual-role ([charging](charging/)), with no fast charging. Of the five cameras two work, the 8 MP ultrawide and the 5 MP macro, with a device tree of its own, a kernel module fix and a ported sensor driver ([below](#cameras-on-postmarketos)).
 
 ## Contents
 
@@ -32,7 +32,7 @@ With one system slot, Linux replaces Android: dual boot isn't practical.
 | | Ubuntu Touch 24.04 | postmarketOS v26.06 |
 |---|---|---|
 | Support | Official port, runs over Android 10's hardware drivers (Halium) | Unsupported variant of a supported family; boots with the `joyeuse` device tree and two fixes |
-| Hardware | Most complete: charging works; UBports lists calls and the camera as working | Display, touch, GPU, Wi-Fi, 4G data and SMS work; no charger driver, no camera, call audio untested |
+| Hardware | Most complete: charging works; UBports lists calls and the camera as working | Display, touch, GPU, Wi-Fi, 4G data and SMS work; no charger driver (it charges, without fast charging), two of five cameras, call audio untested |
 | Browser and GPU | Only Qt WebEngine (Chromium 140) gets the GPU | Any current Chromium (156) on any Wayland compositor gets the GPU |
 | System | Read-only image, updated by UBports | Alpine-based, writable, packages with `apk` |
 
@@ -73,27 +73,27 @@ After the first boot, for Chromium and web apps: `gsettings set sm.puri.phoc sca
 
 ## Hardware status
 
-"Works" means it was tested; "not tested" means it wasn't tried, not that it fails.
+"Works" means it was tested and works; "partial" works with gaps; "broken" does not work; "reported" is listed as working by the port's project but not tested here; "untested" wasn't tried, not that it fails.
 
-| | Ubuntu Touch 24.04-2.x | postmarketOS v26.06 |
+<!-- HARDWARE:START -->
+| | Ubuntu Touch 24.04-2.2 | postmarketOS v26.06, Phosh |
 |---|---|---|
 | Display, backlight | works | works |
-| Touch | works | works (FocalTech FT8756) |
-| GPU | works (Android drivers via Halium) | works: freedreno, firmware `a630_sqe.fw`, `a630_gmu.bin`; Phosh and WebGL render on the Adreno |
+| Touch | works | works: FocalTech FT8756 |
+| GPU | works: Android drivers via Halium | works: freedreno, firmware `a630_sqe.fw`, `a630_gmu.bin`; Phosh and WebGL render on the Adreno |
 | Wi-Fi | works | works |
-| Mobile data | works | works with upstream `tqftpserv`: LTE, IPv4 and IPv6, ~28 Mbit/s down; reconnects after reboot |
-| SMS | not tested | works both ways |
-| Calls | listed as working by UBports | connect; call audio not tested (`q6voiced` is probably needed) |
-| Camera | listed as working by UBports | the 8 MP ultrawide (GC8034 units) and the 5 MP macro work with the [excalibur device tree, the CSIPHY fix and a ported GC8034 driver](#cameras-on-postmarketos); main, depth and front don't |
-| Speaker | not tested | works, quiet (TAS2562 amplifier) |
-| Headphones, microphones, earpiece | not tested | not tested |
-| Bluetooth | not tested | controller up |
-| Sensors, rotation | not tested | sensor service runs; rotation not tested |
-| Buttons, vibration, headset jack | not tested | detected (drv2624 haptics) |
-| Charging | works (Android's `qpnp-smb5` driver) | wall charger only, slowly; no driver ([Charging without a driver](../../skills/android2linux/references/guides/charging-without-a-driver.md)) |
-| Battery gauge | not tested | capacity and voltage; status always "Unknown" |
-| Suspend | not tested | `s2idle` works |
-| GPS, NFC, fingerprint | not tested | not tested; the family's postmarketOS wiki lists them as not working |
+| Bluetooth | untested | partial: controller up |
+| Modem (data, SMS, calls) | works: mobile data works; SMS not tested; UBports lists calls as working | partial: data works with upstream `tqftpserv`: LTE, IPv4 and IPv6, ~28 Mbit/s down, reconnects after reboot; SMS works both ways; calls connect, call audio not tested (`q6voiced` is probably needed) ([guide](../../skills/android2linux/references/guides/qualcomm-modem-debugging.md)) |
+| Audio (speaker, microphones, earpiece, headphones) | untested | partial: speaker works, quiet (TAS2562 amplifier); microphones, earpiece, headphones not tested |
+| Charging | works: Android's `qpnp-smb5` driver | partial: charges from a USB-C charger at about 0.75 A once the device tree makes the USB-C port dual-role (with the stock tree, only USB-A sources reach the charger, slowly); no charger driver, so no fast charging and no charging status ([guide](../../skills/android2linux/references/guides/charging-without-a-driver.md)) ([fix](charging/)) |
+| Battery gauge | untested | partial: capacity and voltage; status always "Unknown" |
+| Suspend | untested | works: `s2idle` |
+| USB (networking, roles) | untested | works: USB networking and SSH work (tested with the stock source-only port, not yet with the dual-role tree); dual-role with the excalibur device tree ([fix](devicetree/)) |
+| Cameras | reported: listed as working by UBports | partial: the 8 MP ultrawide on GC8034 units and the 5 MP macro work; main, depth and front don't ([guide](../../skills/android2linux/references/guides/mainline-camera.md)) ([fix](camera/)) |
+| Sensors, rotation | untested | untested: sensor service runs; rotation not tested |
+| GPS, NFC, fingerprint | untested | untested: the family's postmarketOS wiki lists them as not working |
+| Buttons, vibration, headset jack | untested | works: detected (drv2624 haptics) |
+<!-- HARDWARE:END -->
 
 ### Cameras on postmarketOS
 
@@ -109,9 +109,9 @@ The Pro Max's cameras ([camera guide](../../skills/android2linux/references/guid
 | Depth, 2 MP | GalaxyCore GC02M1 | none |
 | Front, 32 MP | OmniVision OV32A1Q (not joyeuse's OV16A1Q) | none |
 
-**The macro works** with three changes, all in [`camera/`](camera/):
+**The macro works** with three changes, all in [`camera/`](camera/) and [`devicetree/`](devicetree/):
 
-- [`sm7125-xiaomi-excalibur.dts`](camera/sm7125-xiaomi-excalibur.dts): joyeuse's tree with the front sensor and its CAMSS endpoint disabled, the macro's clock at 24 MHz and a second 2.8 V analog rail (TLMM GPIO 43), as Xiaomi's own excalibur kernel has them.
+- [`sm7125-xiaomi-excalibur.dts`](devicetree/sm7125-xiaomi-excalibur.dts): joyeuse's tree with the front sensor and its CAMSS endpoint disabled, the macro's clock at 24 MHz and a second 2.8 V analog rail (TLMM GPIO 43), as Xiaomi's own excalibur kernel has them.
 - [`camss-csiphy-fix.patch`](camera/camss-csiphy-fix.patch): the CSIPHY lane table and PHY-enable writes for this SoC, from [asidko/qcom-camss-mainline](https://github.com/asidko/qcom-camss-mainline).
 - [`s5k5e9-probe-retry.patch`](camera/s5k5e9-probe-retry.patch): a retry in the sensor driver. On about a third of boots the first read gets no answer, and the CCI controller stays in that state until it suspends and resumes (its autosuspend delay is 1 s); the driver now power-cycles the sensor, waits 2 s and tries again, four tries in all. Eight boots in a row found the camera (four of them on the third try). The device tree also gives the sensor the camera block's power domain (`TITAN_TOP_GDSC`), without which a second try failed with `Failed to enable xvclk` (EBUSY).
 
@@ -123,7 +123,7 @@ The first changes went in together, so which of them the macro needs isn't separ
 
 - **Which sensor.** Xiaomi's excalibur kernel wires the ultrawide like mainline curtana's OV8856: on the macro's CCI bus (CCI0, master 1), clock MCLK4, reset on TLMM GPIO 30, CSIPHY 0 with two lanes, the macro's 2.8 V and 1.2 V rails. Units ship an OV8856 (at `0x36`) or a GC8034 (at `0x37`). The OV8856 driver at `0x36` got no answer (`-5`); pointed at `0x37` it read a wrong chip ID (`chip id mismatch: 885a!=0`, `-6`). Something answered there, so the unit tested has the GC8034. The [camera guide](../../skills/android2linux/references/guides/mainline-camera.md#which-variant-a-unit-has) has the method.
 - **The driver.** Mainline has none. [`gc8034/gc8034.c`](camera/gc8034/gc8034.c) ports Rockchip's (rockchip-linux/kernel `develop-6.1`, GPL-2.0): its register tables, exposure and gain programming and power sequence, without Rockchip's module ioctls and OTP calibration, for kernel 6.14. Rockchip's 30 fps two-lane tables streamed garbled frames here: every line arrived 3856 bytes long instead of 4080, so the picture sheared and ran short of the frame. Its 15 fps set (336 MHz link, 672 Mbps a lane) is right: 3264 × 2448 RAW10 at 15 fps. The tables expect a 24 MHz input clock, so the tree runs MCLK4 at 24 MHz rather than Xiaomi's 19.2. Build it on the phone like the other modules (`make -C <kernel tree> M=$PWD modules` in that folder) and put `gc8034.ko` in `/lib/modules/$(uname -r)/updates/`.
-- **The tree.** [`sm7125-xiaomi-excalibur.dts`](camera/sm7125-xiaomi-excalibur.dts) has its node, `galaxycore,gc8034` at `0x37`, on CSIPHY 0 at a 336 MHz link. On an OV8856 unit, use mainline curtana's `ov8856@36` node instead; it isn't tested here. A sensor whose node probes but never binds keeps `qcom-camss` from registering, which hides the macro too. So test a changed tree for one boot first ([camera guide](../../skills/android2linux/references/guides/mainline-camera.md#boot-it-from-a-second-entry)).
+- **The tree.** [`sm7125-xiaomi-excalibur.dts`](devicetree/sm7125-xiaomi-excalibur.dts) has its node, `galaxycore,gc8034` at `0x37`, on CSIPHY 0 at a 336 MHz link. On an OV8856 unit, use mainline curtana's `ov8856@36` node instead; it isn't tested here. A sensor whose node probes but never binds keeps `qcom-camss` from registering, which hides the macro too. So test a changed tree for one boot first ([camera guide](../../skills/android2linux/references/guides/mainline-camera.md#boot-it-from-a-second-entry)).
 - **Boot.** The GC8034 also missed its first read once (a `-110` timeout on the shared bus): the driver retries like the macro's. On about one boot in twelve the macro still missed all four tries. [`camera-reprobe`](camera/camera-reprobe), a script run by [`camera-reprobe.service`](camera/camera-reprobe.service), binds either driver again, up to five times 10 s apart, until both sensors are found.
 
 `cam -l` then lists two cameras, `/base/soc@0/cci@ac4a000/i2c-bus@1/gc8034@37` and `…/s5k5e9@2d`. The ultrawide's picture is wider than the macro's and focuses at a distance; its colours look right, though it comes out brighter than the macro with libcamera's uncalibrated defaults.
@@ -157,7 +157,7 @@ All through fastboot; read [Safe flashing](../../skills/android2linux/references
 
 Measurements behind the tables above, from 2026-11-20 and 2026-11-21.
 
-**Charging.** Wall charger, screen off: 75 % → 83 % in 30 minutes, voltage 4152 → 4228 mV. From a PC's USB port the battery still supplied about 55–240 mA (200–350 mA unplugged). The gauge's `current_now` read only about −200 mA while charging; capacity and voltage are more reliable. Full brightness with Firefox open drew about 540 mA, roughly 10 % an hour on the 5,020 mAh battery. `s2idle` suspend and resume work, with a harmless kernel warning on resume.
+**Charging.** 2026-11-28, with a Mac USB-C power adapter: with the stock tree's source-only USB-C port the battery drained (the gauge read about +60 mA); with the dual-role tree, about −0.75 A with the screen on, and 46 % → 72 % in about 85 minutes. Earlier, 2026-11-21, wall charger, screen off: 75 % → 83 % in 30 minutes, voltage 4152 → 4228 mV. From a PC's USB port the battery still supplied about 55–240 mA (200–350 mA unplugged). The gauge's `current_now` read only about −200 mA while charging; capacity and voltage are more reliable. Full brightness with Firefox open drew about 540 mA, roughly 10 % an hour on the 5,020 mAh battery. `s2idle` suspend and resume work, with a harmless kernel warning on resume.
 
 **Chromium.** In a `cage` kiosk at scale 3: viewport 360 × 800, `devicePixelRatio` 3, WebGL `ANGLE (…, FD618, OpenGL ES 3.2)`, 58–60 fps with WebGL and CSS animations; no hardware video decoding. Safe area: the top 101 px (≈ 34 CSS px) for the camera hole and corners, corner radius about 29 px (≈ 10 CSS px), camera hole at x 491–581 px (≈ 164–194 CSS px).
 
@@ -167,4 +167,4 @@ Measurements behind the tables above, from 2026-11-20 and 2026-11-21.
 
 ## Last checked
 
-Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium). Cameras: 2026-11-23 (the macro and the ultrawide capture; main, depth and front not tried).
+Ubuntu Touch install: 2026-11-20. postmarketOS install and hardware: 2026-11-20 and 2026-11-21 (modem, SMS, data, charging, Chromium). Charging, the USB-C port and UPower: 2026-11-28. Cameras: 2026-11-23 (the macro and the ultrawide capture; main, depth and front not tried).

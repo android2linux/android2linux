@@ -14,6 +14,7 @@ Where things are, relative to this file (the skill is installed as a link into a
 - [`../../phones/`](../../phones/): one folder per phone already done (by codename), with what works and the fixes that phone needs. Check it first.
 - [`../../apps/`](../../apps/): web apps reworked for phone screens, their installer, and the tools to build more.
 - [`scripts/`](scripts/README.md): tools for the common steps. Read a script before running it, and tell the user what it will do.
+- **Guides by kind.** *Process:* [assess-your-phone.md](references/guides/assess-your-phone.md), [xiaomi-unlock-from-linux.md](references/guides/xiaomi-unlock-from-linux.md), [safe-flashing.md](references/guides/safe-flashing.md), [ubuntu-touch.md](references/guides/ubuntu-touch.md), [postmarketos-unsupported-variant.md](references/guides/postmarketos-unsupported-variant.md), [working-from-your-pc.md](references/guides/working-from-your-pc.md), [communities-and-ai.md](references/guides/communities-and-ai.md). *Hardware, by area:* [qualcomm-modem-debugging.md](references/guides/qualcomm-modem-debugging.md) (modem), [charging-without-a-driver.md](references/guides/charging-without-a-driver.md) (charging, USB), [mainline-camera.md](references/guides/mainline-camera.md) (cameras). *Interface:* [chromium-kiosk.md](references/guides/chromium-kiosk.md), [your-own-session.md](references/guides/your-own-session.md).
 
 ## How to pair
 
